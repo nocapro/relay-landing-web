@@ -1,0 +1,228 @@
+uuid: 13c19b0d-b863-44f3-80a5-f86a073f32e9
+projectId: relay-landing-web
+createdAt: '2025-09-02T02:21:59.950Z'
+linesAdded: 3
+linesRemoved: 4
+gitCommitMsg: 'fix(animations): prevent FOUC by applying fill-mode globally'
+promptSummary: The landing page is glitching on first load, likely due to animations.
+reasoning:
+  - >-
+    right, "glitching on first load" is almost always a flash of content before
+    animations kick in. some elements are visible for a frame, then they pop to
+    `opacity: 0` and start their animation. ugly.
+  - >-
+    the fix is to use `animation-fill-mode: backwards`. this forces an element
+    to adopt the style of its first animation keyframe (`opacity: 0` in this
+    case) *before* the animation starts, even during a delay.
+  - >-
+    i see `backwards` is applied with inline styles in some components but not
+    others (e.g., `Hero.tsx`), causing inconsistency. i'll bake it into the
+    tailwind config for `fade-in` and `slide-up` to fix it globally and keep the
+    component code cleaner.
+  - >-
+    first, i'll update the tailwind config to apply `backwards` to the
+    animations.
+  - >-
+    now that the animation utility handles it, i'll remove the redundant inline
+    styles from the components. starting with `Solution.tsx`.
+  - and `AnimatedList.tsx`.
+  - this should make the initial load smooth. no more flicker.
+  - '---'
+operations:
+  - type: write
+    path: tailwind.config.js
+    content: |-
+      --- tailwind.config.js
+      +++ tailwind.config.js
+      @@ -52,8 +52,8 @@
+               dev: ['Fira Code', 'JetBrains Mono', 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro', 'Menlo', 'Courier', 'monospace'],
+             },
+             animation: {
+      -        'fade-in': 'fadeIn 0.5s ease-in-out',
+      -        'slide-up': 'slideUp 0.5s ease-out',
+      +        'fade-in': 'fadeIn 0.5s ease-in-out backwards',
+      +        'slide-up': 'slideUp 0.5s ease-out backwards',
+               'glow': 'glow 2s ease-in-out infinite alternate',
+               "accordion-down": "accordion-down 0.2s ease-out",
+               "accordion-up": "accordion-up 0.2s ease-out",
+    patchStrategy: new-unified
+  - type: write
+    path: src/components/landing/Solution.tsx
+    content: >-
+      --- src/components/landing/Solution.tsx
+
+      +++ src/components/landing/Solution.tsx
+
+      @@ -9,7 +9,7 @@
+             <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">{showcase.footer}</p>
+             <div className="mt-12 grid gap-8 md:grid-cols-3">
+               {showcase.workflow.map((item, i) => (
+      -          <div key={i} className="flex flex-col items-center p-6
+      bg-secondary/50 rounded-lg animate-slide-up" style={{ animationDelay: `${i
+      * 150}ms`, animationFillMode: 'backwards' }}>
+
+      +          <div key={i} className="flex flex-col items-center p-6
+      bg-secondary/50 rounded-lg animate-slide-up" style={{ animationDelay: `${i
+      * 150}ms` }}>
+                   <CheckCircle2 className="h-8 w-8 mb-4 text-primary" />
+                   <p className="font-medium text-center">{item}</p>
+                 </div>
+    patchStrategy: new-unified
+  - type: write
+    path: src/components/ui/AnimatedList.tsx
+    content: |-
+      --- src/components/ui/AnimatedList.tsx
+      +++ src/components/ui/AnimatedList.tsx
+      @@ -19,8 +19,7 @@
+                 key={i} 
+                 className={cn(line.muted ? "text-muted-foreground" : "text-foreground", "animate-slide-up", line.className)}
+                 style={{ 
+      -            animationFillMode: 'backwards',
+                   animationDelay: `${initialDelay + i * 150}ms` 
+                 }}
+               >
+    patchStrategy: new-unified
+snapshot:
+  tailwind.config.js: |-
+    /** @type {import('tailwindcss').Config} */
+    export default {
+      content: [
+        "./index.html",
+        "./src/**/*.{js,ts,jsx,tsx}",
+      ],
+      theme: {
+        extend: {
+          colors: {
+            border: "hsl(var(--border))",
+            input: "hsl(var(--input))",
+            ring: "hsl(var(--ring))",
+            background: "hsl(var(--background))",
+            foreground: "hsl(var(--foreground))",
+            primary: {
+              DEFAULT: "hsl(var(--primary))",
+              foreground: "hsl(var(--primary-foreground))",
+            },
+            secondary: {
+              DEFAULT: "hsl(var(--secondary))",
+              foreground: "hsl(var(--secondary-foreground))",
+            },
+            destructive: {
+              DEFAULT: "hsl(var(--destructive))",
+              foreground: "hsl(var(--destructive-foreground))",
+            },
+            muted: {
+              DEFAULT: "hsl(var(--muted))",
+              foreground: "hsl(var(--muted-foreground))",
+            },
+            accent: {
+              DEFAULT: "hsl(var(--accent))",
+              foreground: "hsl(var(--accent-foreground))",
+            },
+            popover: {
+              DEFAULT: "hsl(var(--popover))",
+              foreground: "hsl(var(--popover-foreground))",
+            },
+            card: {
+              DEFAULT: "hsl(var(--card))",
+              foreground: "hsl(var(--card-foreground))",
+            },
+          },
+          borderRadius: {
+            lg: "var(--radius)",
+            md: "calc(var(--radius) - 2px)",
+            sm: "calc(var(--radius) - 4px)",
+          },
+          fontFamily: {
+            mono: ['Fira Code', 'JetBrains Mono', 'Monaco', 'Consolas', 'monospace'],
+            dev: ['Fira Code', 'JetBrains Mono', 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro', 'Menlo', 'Courier', 'monospace'],
+          },
+          animation: {
+            'fade-in': 'fadeIn 0.5s ease-in-out',
+            'slide-up': 'slideUp 0.5s ease-out',
+            'glow': 'glow 2s ease-in-out infinite alternate',
+            "accordion-down": "accordion-down 0.2s ease-out",
+            "accordion-up": "accordion-up 0.2s ease-out",
+          },
+          keyframes: {
+            fadeIn: {
+              '0%': { opacity: '0' },
+              '100%': { opacity: '1' },
+            },
+            slideUp: {
+              '0%': { transform: 'translateY(20px)', opacity: '0' },
+              '100%': { transform: 'translateY(0)', opacity: '1' },
+            },
+            glow: {
+              '0%': { boxShadow: '0 0 5px #00ff88, 0 0 10px #00ff88, 0 0 15px #00ff88' },
+              '100%': { boxShadow: '0 0 10px #00ff88, 0 0 20px #00ff88, 0 0 30px #00ff88' },
+            },
+            "accordion-down": {
+              from: { height: "0" },
+              to: { height: "var(--radix-accordion-content-height)" },
+            },
+            "accordion-up": {
+              from: { height: "var(--radix-accordion-content-height)" },
+              to: { height: "0" },
+            },
+          },
+        },
+      },
+      plugins: [],
+    }
+  src/components/landing/Solution.tsx: |-
+    import { showcase } from "@/content/landing";
+    import { CheckCircle2 } from "lucide-react";
+
+    export function Solution() {
+      return (
+        <div className="text-center">
+          <h2 className="text-3xl md:text-4xl font-bold tracking-tight">{showcase.title}</h2>
+          <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">{showcase.footer}</p>
+          <div className="mt-12 grid gap-8 md:grid-cols-3">
+            {showcase.workflow.map((item, i) => (
+              <div key={i} className="flex flex-col items-center p-6 bg-secondary/50 rounded-lg animate-slide-up" style={{ animationDelay: `${i * 150}ms`, animationFillMode: 'backwards' }}>
+                <CheckCircle2 className="h-8 w-8 mb-4 text-primary" />
+                <p className="font-medium text-center">{item}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+  src/components/ui/AnimatedList.tsx: >-
+    import { cn } from "@/lib/utils";
+
+
+    interface Line {
+      text: string;
+      muted?: boolean;
+      className?: string;
+    }
+
+
+    interface AnimatedListProps {
+      lines: Line[];
+      initialDelay?: number;
+    }
+
+
+    export function AnimatedList({ lines, initialDelay = 0 }: AnimatedListProps)
+    {
+      return (
+        <>
+          {lines.map((line, i) => (
+            <div 
+              key={i} 
+              className={cn(line.muted ? "text-muted-foreground" : "text-foreground", "animate-slide-up", line.className)}
+              style={{ 
+                animationFillMode: 'backwards',
+                animationDelay: `${initialDelay + i * 150}ms` 
+              }}
+            >
+              {line.text}
+            </div>
+          ))}
+        </>
+      );
+    }
+approved: true

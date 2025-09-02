@@ -1,0 +1,158 @@
+uuid: 44265538-2321-4f1b-a53b-e9f0237c7324
+projectId: relay-landing-web
+createdAt: '2025-09-02T02:17:11.643Z'
+linesAdded: 13
+linesRemoved: 6
+gitCommitMsg: 'feat(landing): update demo animation with realistic log output'
+promptSummary: >-
+  Update the animated demo in Hero.tsx to use a real log example from `relay
+  watch`.
+reasoning:
+  - >-
+    ok, got it. the current demo is too generic. need to swap in a real `relay
+    watch` log to show what it actually does. i'll make it look slick and
+    animated, just like the real thing, but punchier for the landing page.
+  - >-
+    first, i'll upgrade the `AnimatedList` component to allow custom styling per
+    line. this will let me add some color to the output.
+  - >-
+    next, i'll update the demo component with a condensed but realistic log
+    sequence. it'll show the tool detecting a patch, writing files, and giving a
+    final success message with a bit of flair.
+  - '---'
+operations:
+  - type: write
+    path: src/components/ui/AnimatedList.tsx
+    content: >-
+      --- src/components/ui/AnimatedList.tsx
+
+      +++ src/components/ui/AnimatedList.tsx
+
+      @@ -1,6 +1,9 @@
+
+      +import { cn } from "@/lib/utils";
+
+      +
+       interface Line {
+         text: string;
+         muted?: boolean;
+      +  className?: string;
+       }
+       
+       interface AnimatedListProps {
+      @@ -14,7 +17,7 @@
+             {lines.map((line, i) => (
+               <div 
+                 key={i} 
+      -          className={`${line.muted ? "text-muted-foreground" :
+      "text-foreground"} animate-slide-up`}
+
+      +          className={cn(line.muted ? "text-muted-foreground" :
+      "text-foreground", "animate-slide-up", line.className)}
+                 style={{ 
+                   animationFillMode: 'backwards',
+                   animationDelay: `${initialDelay + i * 150}ms`
+    patchStrategy: new-unified
+  - type: write
+    path: src/components/landing/Demo.tsx
+    content: >-
+      --- src/components/landing/Demo.tsx
+
+      +++ src/components/landing/Demo.tsx
+
+      @@ -2,13 +2,16 @@
+       
+       export function Demo() {
+         const lines = [
+      -    { text: "$ relay watch", muted: false },
+
+      +    { text: "$ relay watch" },
+           { text: "Watching for clipboard changes...", muted: true },
+      -    { text: "✓ Patch detected. Applying...", muted: false },
+
+      -    { text: "✓ Running tests...", muted: false },
+
+      -    { text: "✓ Linting files...", muted: false },
+
+      -    { text: "✨ All checks passed. Ready for review.", muted: false },
+
+      +    { text: "New clipboard content detected...", muted: true },
+
+      +    { text: "✓ Valid patch detected. Processing..." },
+
+      +    { text: "🚀 Starting transaction..." },
+
+      +    { text: "✔ Written: src/components/Hero.tsx (+44, -0)", className:
+      "text-green-400" },
+
+      +    { text: "✔ Written: src/pages/LandingPage.tsx (+45, -1)", className:
+      "text-green-400" },
+
+      +    { text: "✔ Written: vite.config.ts (+4, -1)", className:
+      "text-green-400" },
+
+      +    { text: "...", muted: true },
+
+      +    { text: "✨ Checks complete. Ready for review.", className:
+      "glow-text" },
+         ];
+         return (
+           <div className="relative code-block max-w-2xl mx-auto p-6 glow-border">
+    patchStrategy: new-unified
+snapshot:
+  src/components/ui/AnimatedList.tsx: >-
+    interface Line {
+      text: string;
+      muted?: boolean;
+    }
+
+
+    interface AnimatedListProps {
+      lines: Line[];
+      initialDelay?: number;
+    }
+
+
+    export function AnimatedList({ lines, initialDelay = 0 }: AnimatedListProps)
+    {
+      return (
+        <>
+          {lines.map((line, i) => (
+            <div 
+              key={i} 
+              className={`${line.muted ? "text-muted-foreground" : "text-foreground"} animate-slide-up`}
+              style={{ 
+                animationFillMode: 'backwards',
+                animationDelay: `${initialDelay + i * 150}ms` 
+              }}
+            >
+              {line.text}
+            </div>
+          ))}
+        </>
+      );
+    }
+  src/components/landing/Demo.tsx: |-
+    import { AnimatedList } from "../ui/AnimatedList";
+
+    export function Demo() {
+      const lines = [
+        { text: "$ relay watch", muted: false },
+        { text: "Watching for clipboard changes...", muted: true },
+        { text: "✓ Patch detected. Applying...", muted: false },
+        { text: "✓ Running tests...", muted: false },
+        { text: "✓ Linting files...", muted: false },
+        { text: "✨ All checks passed. Ready for review.", muted: false },
+      ];
+      return (
+        <div className="relative code-block max-w-2xl mx-auto p-6 glow-border">
+          <div className="absolute -top-3 -left-3 w-3 h-3 bg-primary rounded-full animate-ping"></div>
+          <div className="absolute -top-3 -left-3 w-3 h-3 bg-primary rounded-full"></div>
+          <div className="font-mono text-left">
+            <AnimatedList lines={lines} initialDelay={200} />
+          </div>
+          <div className="absolute top-4 right-4 text-xs text-muted-foreground">LIVE</div>
+        </div>
+      );
+    }
+approved: true

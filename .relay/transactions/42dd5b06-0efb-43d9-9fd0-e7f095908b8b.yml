@@ -1,0 +1,59 @@
+uuid: 42dd5b06-0efb-43d9-9fd0-e7f095908b8b
+projectId: relay-landing-web
+createdAt: '2025-09-02T01:46:25.779Z'
+linesAdded: 29
+linesRemoved: 0
+gitCommitMsg: 'fix: add favicon and index.html to resolve 404'
+promptSummary: The app is showing a 404 error for favicon.ico in the browser console.
+reasoning:
+  - ah, classic. browser's hungry for a favicon. easy fix.
+  - >-
+    first, i'll whip up a quick svg for the favicon. hacker aesthetic,
+    naturally. it'll live in `public`.
+  - >-
+    next, the project is missing the root `index.html` that vite needs to serve
+    the app and link the favicon. i'll create that now.
+  - that should resolve the 404.
+operations:
+  - type: write
+    path: public/favicon.svg
+    content: >-
+      <svg width="64" height="64" viewBox="0 0 64 64" fill="none"
+      xmlns="http://www.w3.org/2000/svg">
+        <rect width="64" height="64" rx="12" fill="#0A0A0A"/>
+        <path d="M20 18H32C37.5228 18 42 22.4772 42 28C42 33.5228 37.5228 38 32 38H20V18Z" stroke="url(#paint0_linear_1_1)" stroke-width="4"/>
+        <path d="M32 38L44 46" stroke="url(#paint1_linear_1_1)" stroke-width="4"/>
+        <defs>
+          <linearGradient id="paint0_linear_1_1" x1="20" y1="18" x2="42" y2="38" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#38BDF8"/>
+            <stop offset="1" stop-color="#22D3EE"/>
+          </linearGradient>
+          <linearGradient id="paint1_linear_1_1" x1="32" y1="38" x2="44" y2="46" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#38BDF8"/>
+            <stop offset="1" stop-color="#22D3EE"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    patchStrategy: replace
+  - type: write
+    path: index.html
+    content: |-
+      <!doctype html>
+      <html lang="en">
+        <head>
+          <meta charset="UTF-8" />
+          <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          <title>Relaycode | Turn LLM answers into code</title>
+          <meta name="description" content="A CLI tool that turns any LLM answer into real code—built for solo devs.">
+        </head>
+        <body>
+          <div id="root"></div>
+          <script type="module" src="/src/main.tsx"></script>
+        </body>
+      </html>
+    patchStrategy: replace
+snapshot:
+  public/favicon.svg: null
+  index.html: ''
+approved: true

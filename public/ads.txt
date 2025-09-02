@@ -1,0 +1,2 @@
+# For advertising inquiries on noca.pro, please reach out.
+contact=hello@noca.pro

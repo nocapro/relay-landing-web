@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Sitemap: https://relay.noca.pro/sitemap.xml
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+# See llm.txt for large language model usage rights.

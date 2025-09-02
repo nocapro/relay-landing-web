@@ -1,0 +1,152 @@
+uuid: 13788a1b-60fd-4f01-8c43-b9b5962c0b05
+projectId: relay-landing-web
+createdAt: '2025-09-02T01:50:30.028Z'
+linesAdded: 6
+linesRemoved: 2
+gitCommitMsg: 'fix(ui): implement asChild in Button component'
+promptSummary: >-
+  The browser console is showing a React warning: 'React does not recognize the
+  `asChild` prop on a DOM element.' This is happening in my custom Button
+  component.
+reasoning:
+  - >-
+    gotcha. react's complaining about the `asChild` prop. that's a classic
+    shadcn/radix pattern that the boilerplate `Button` component doesn't handle.
+    it's passing `asChild` directly to the DOM, which is a no-go.
+  - >-
+    i'll fix it by adding `@radix-ui/react-slot` and updating the button
+    component to use the `Slot` component when `asChild` is true. this lets the
+    button's props and styles merge with its child element (like an `<a>` tag)
+    instead of wrapping it in a `<button>`.
+  - first, add the dependency to `package.json`.
+  - now, upgrade `button.tsx` to handle `asChild`.
+  - >-
+    that should silence the warning. remember to run `bun install` or `npm i` to
+    get the new package.
+operations:
+  - type: write
+    path: package.json
+    content: |-
+      --- package.json
+      +++ package.json
+      @@ -9,6 +9,7 @@
+         },
+         "dependencies": {
+           "@radix-ui/react-accordion": "^1.1.2",
+      +    "@radix-ui/react-slot": "^1.0.2",
+           "clsx": "^2.0.0",
+           "firebase": "^10.1.0",
+           "lucide-react": "^0.303.0",
+    patchStrategy: new-unified
+  - type: write
+    path: src/components/ui/button.tsx
+    content: >-
+      --- src/components/ui/button.tsx
+
+      +++ src/components/ui/button.tsx
+
+      @@ -1,15 +1,18 @@
+       import * as React from "react"
+      +import { Slot } from "@radix-ui/react-slot"
+       import { cn } from "../../lib/utils"
+       
+       export interface ButtonProps
+         extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+      +  asChild?: boolean
+         variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link"
+         size?: "default" | "sm" | "lg" | "icon"
+       }
+       
+       const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+      -  ({ className, variant = "default", size = "default", ...props }, ref)
+      => {
+
+      +  ({ className, variant = "default", size = "default", asChild = false,
+      ...props }, ref) => {
+
+      +    const Comp = asChild ? Slot : "button"
+           return (
+      -      <button
+
+      +      <Comp
+               className={cn(
+                 "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+                 {
+    patchStrategy: new-unified
+snapshot:
+  package.json: |
+    {
+      "name": "relay-landing-web",
+      "private": true,
+      "version": "0.0.0",
+      "type": "module",
+      "scripts": {
+        "dev": "vite",
+        "build": "node scripts/generate-llm-txt.mjs && tsc && vite build",
+        "preview": "vite preview"
+      },
+      "dependencies": {
+        "@radix-ui/react-accordion": "^1.1.2",
+        "clsx": "^2.0.0",
+        "firebase": "^10.1.0",
+        "lucide-react": "^0.303.0",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "tailwind-merge": "^1.14.0",
+        "react-router-dom": "^6.24.1"
+      },
+      "devDependencies": {
+        "@types/react": "^18.2.15",
+        "@types/react-dom": "^18.2.7",
+        "@vitejs/plugin-react": "^4.0.3",
+        "glob": "^10.4.1",
+        "autoprefixer": "^10.4.14",
+        "postcss": "^8.4.27",
+        "tailwindcss": "^3.3.3",
+        "terser": "^5.43.1",
+        "typescript": "^5.0.2",
+        "vite": "^4.4.5"
+      }
+    }
+  src/components/ui/button.tsx: |-
+    import * as React from "react"
+    import { cn } from "../../lib/utils"
+
+    export interface ButtonProps
+      extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+      variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link"
+      size?: "default" | "sm" | "lg" | "icon"
+    }
+
+    const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+      ({ className, variant = "default", size = "default", ...props }, ref) => {
+        return (
+          <button
+            className={cn(
+              "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+              {
+                "bg-primary text-primary-foreground hover:bg-primary/90": variant === "default",
+                "bg-destructive text-destructive-foreground hover:bg-destructive/90": variant === "destructive",
+                "border border-input bg-background hover:bg-accent hover:text-accent-foreground": variant === "outline",
+                "bg-secondary text-secondary-foreground hover:bg-secondary/80": variant === "secondary",
+                "hover:bg-accent hover:text-accent-foreground": variant === "ghost",
+                "text-primary underline-offset-4 hover:underline": variant === "link",
+              },
+              {
+                "h-10 px-4 py-2": size === "default",
+                "h-9 rounded-md px-3": size === "sm",
+                "h-11 rounded-md px-8": size === "lg",
+                "h-10 w-10": size === "icon",
+              },
+              className
+            )}
+            ref={ref}
+            {...props}
+          />
+        )
+      }
+    )
+    Button.displayName = "Button"
+
+    export { Button }
+approved: true

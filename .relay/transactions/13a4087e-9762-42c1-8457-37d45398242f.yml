@@ -1,0 +1,275 @@
+uuid: 13a4087e-9762-42c1-8457-37d45398242f
+projectId: relay-landing-web
+createdAt: '2025-09-02T02:33:06.654Z'
+linesAdded: 55
+linesRemoved: 5
+gitCommitMsg: 'feat: add noca and repomix logos and enhance footer'
+promptSummary: Leverage provided assets to enhance the landing page.
+reasoning:
+  - >-
+    Alright, let's ship some improvements. I'll add the Noca and Repomix logos
+    as UI components and wire them up. Also, sprucing up the footer to match the
+    hero section's "Built by Arman" badge.
+  - First, creating the new `NocaLogo` component.
+  - Next, the `RepomixLogo` component.
+  - Now, let's put the `NocaLogo` in the CTA card.
+  - And the `RepomixLogo` in the Roadmap section.
+  - Finally, updating the footer.
+operations:
+  - type: write
+    path: src/components/ui/NocaLogo.tsx
+    content: |-
+      export const NocaLogo = (props: React.ComponentProps<'svg'>) => (
+        <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+          <rect width="64" height="64" rx="12" fill="#0A0A0A"/>
+          <path d="M20 23L32 23C37.5228 23 42 27.4772 42 33L42 33" stroke="url(#paint0_linear_1_4_noca)" strokeWidth="4"/>
+          <path d="M20 41L32 41C37.5228 41 42 36.5228 42 31L42 31" stroke="url(#paint1_linear_1_4_noca)" strokeWidth="4"/>
+          <defs>
+            <linearGradient id="paint0_linear_1_4_noca" x1="20" y1="23" x2="42" y2="33" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#38BDF8"/>
+              <stop offset="1" stopColor="#22D3EE"/>
+            </linearGradient>
+            <linearGradient id="paint1_linear_1_4_noca" x1="20" y1="41" x2="42" y2="31" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#38BDF8"/>
+              <stop offset="1" stopColor="#22D3EE"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      );
+    patchStrategy: replace
+  - type: write
+    path: src/components/ui/RepomixLogo.tsx
+    content: |-
+      export const RepomixLogo = (props: React.ComponentProps<'svg'>) => (
+        <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+          <rect width="64" height="64" rx="12" fill="#0A0A0A"/>
+          <path d="M20 23L44 23" stroke="url(#paint0_linear_1_2_repomix)" strokeWidth="4"/>
+          <path d="M20 32L44 32" stroke="url(#paint1_linear_1_2_repomix)" strokeWidth="4"/>
+          <path d="M20 41L44 41" stroke="url(#paint2_linear_1_2_repomix)" strokeWidth="4"/>
+          <defs>
+            <linearGradient id="paint0_linear_1_2_repomix" x1="20" y1="23" x2="44" y2="23" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#38BDF8"/>
+              <stop offset="1" stopColor="#22D3EE"/>
+            </linearGradient>
+            <linearGradient id="paint1_linear_1_2_repomix" x1="20" y1="32" x2="44" y2="32" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#38BDF8"/>
+              <stop offset="1" stopColor="#22D3EE"/>
+            </linearGradient>
+            <linearGradient id="paint2_linear_1_2_repomix" x1="20" y1="41" x2="44" y2="41" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#38BDF8"/>
+              <stop offset="1" stopColor="#22D3EE"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      );
+    patchStrategy: replace
+  - type: write
+    path: src/components/landing/CTA.tsx
+    content: |-
+      --- src/components/landing/CTA.tsx
+      +++ src/components/landing/CTA.tsx
+      @@ -2,6 +2,7 @@
+       import { Button } from "../ui/button";
+       import { Copy, ExternalLink } from "lucide-react";
+       import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
+      +import { NocaLogo } from "../ui/NocaLogo";
+       
+       export function CTA() {
+         const copyToClipboard = (text: string) => {
+      @@ -25,7 +26,10 @@
+             </div>
+             <Card className="bg-secondary/50 border-blue-500/30">
+               <CardHeader>
+      -          <CardTitle>{webVersion.title}</CardTitle>
+      +          <CardTitle className="flex items-center gap-2">
+      +            <NocaLogo className="h-6 w-6" />
+      +            <span>{webVersion.title}</span>
+      +          </CardTitle>
+                 <CardDescription>{webVersion.description}</CardDescription>
+               </CardHeader>
+               <CardContent>
+    patchStrategy: new-unified
+  - type: write
+    path: src/components/landing/Roadmap.tsx
+    content: >-
+      --- src/components/landing/Roadmap.tsx
+
+      +++ src/components/landing/Roadmap.tsx
+
+      @@ -1,5 +1,6 @@
+       import { companion } from "@/content/landing";
+       import { GitMerge } from "lucide-react";
+      +import { RepomixLogo } from "../ui/RepomixLogo";
+       
+       export function Roadmap() {
+         return (
+      @@ -14,7 +15,10 @@
+               <div className="relative w-64 h-64 flex items-center justify-center">
+                 <div className="absolute w-full h-full border-2 border-dashed border-border/50 rounded-full animate-spin [animation-duration:20s]"></div>
+                 <GitMerge className="h-24 w-24 text-primary opacity-50" />
+      -          <div className="absolute top-0 left-1/2 -translate-x-1/2
+      -translate-y-1/2 p-3 bg-secondary rounded-lg shadow-lg
+      text-sm">Repomix</div>
+
+      +          <div className="absolute top-0 left-1/2 -translate-x-1/2
+      -translate-y-1/2 p-2 bg-secondary rounded-lg shadow-lg text-sm flex
+      items-center gap-2">
+
+      +            <RepomixLogo className="w-5 h-5" />
+
+      +            <span>Repomix</span>
+
+      +          </div>
+                 <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 p-3 bg-secondary rounded-lg shadow-lg text-sm">Relaycode</div>
+                 <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 p-3 bg-secondary rounded-lg shadow-lg text-sm">LLM</div>
+                 <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 p-3 bg-secondary rounded-lg shadow-lg text-sm">Your Repo</div>
+    patchStrategy: new-unified
+  - type: write
+    path: src/components/landing/Footer.tsx
+    content: >-
+      --- src/components/landing/Footer.tsx
+
+      +++ src/components/landing/Footer.tsx
+
+      @@ -18,9 +18,11 @@
+                   </a>
+                 </Button>
+               </div>
+      -        <p className="text-sm text-muted-foreground">
+
+      -          © {new Date().getFullYear()} Relaycode. Built by Arman.
+
+      -        </p>
+
+      +        <div className="text-sm text-muted-foreground flex items-center
+      justify-center gap-2">
+
+      +          <span>© {new Date().getFullYear()} Relaycode.</span>
+
+      +          <span>•</span>
+
+      +          <img
+      src="https://pbs.twimg.com/profile_images/1961594429338472448/OOzuAD7h_400x400.jpg"
+      alt="Arman" className="w-5 h-5 rounded-full" />
+
+      +          <span>Built by <a href="https://go.noca.pro/x-arman"
+      target="_blank" rel="noreferrer" className="underline
+      hover:text-foreground">Arman</a>.</span>
+
+      +        </div>
+             </div>
+           </footer>
+         );
+       }
+    patchStrategy: new-unified
+snapshot:
+  src/components/ui/NocaLogo.tsx: null
+  src/components/ui/RepomixLogo.tsx: null
+  src/components/landing/CTA.tsx: >-
+    import { install, webVersion } from "@/content/landing";
+
+    import { Button } from "../ui/button";
+
+    import { Copy, ExternalLink } from "lucide-react";
+
+    import { Card, CardContent, CardDescription, CardHeader, CardTitle } from
+    "../ui/card";
+
+
+    export function CTA() {
+      const copyToClipboard = (text: string) => {
+        navigator.clipboard.writeText(text);
+      };
+
+      return (
+        <div className="grid lg:grid-cols-2 gap-8 items-start">
+          <div className="text-center lg:text-left">
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight">{install.title}</h2>
+            <div className="mt-8 space-y-4">
+              {install.steps.map((step, i) => (
+                <div key={i} className="code-block flex items-center justify-between gap-4">
+                  <span className="text-muted-foreground">$</span>
+                  <code className="flex-1 text-left">{step}</code>
+                  <Button variant="ghost" size="icon" onClick={() => copyToClipboard(step)}>
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+          <Card className="bg-secondary/50 border-blue-500/30">
+            <CardHeader>
+              <CardTitle>{webVersion.title}</CardTitle>
+              <CardDescription>{webVersion.description}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button asChild className="w-full">
+                <a href={webVersion.link} target="_blank" rel="noreferrer">
+                  Visit noca.pro <ExternalLink className="ml-2 h-4 w-4" />
+                </a>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
+  src/components/landing/Roadmap.tsx: |-
+    import { companion } from "@/content/landing";
+    import { GitMerge } from "lucide-react";
+
+    export function Roadmap() {
+      return (
+        <div className="grid md:grid-cols-2 gap-12 items-center">
+          <div className="text-center md:text-left">
+            <div className="inline-block bg-secondary text-secondary-foreground py-1 px-3 rounded-lg mb-4 text-sm font-medium">
+              Companion Tool
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight">{companion.title}</h2>
+            <p className="mt-4 text-lg text-muted-foreground" dangerouslySetInnerHTML={{ __html: companion.description.replace(/\*\*(.*?)\*\*/g, '<strong class="text-foreground">$1</strong>') }} />
+          </div>
+          <div className="flex justify-center">
+            <div className="relative w-64 h-64 flex items-center justify-center">
+              <div className="absolute w-full h-full border-2 border-dashed border-border/50 rounded-full animate-spin [animation-duration:20s]"></div>
+              <GitMerge className="h-24 w-24 text-primary opacity-50" />
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 p-3 bg-secondary rounded-lg shadow-lg text-sm">Repomix</div>
+              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 p-3 bg-secondary rounded-lg shadow-lg text-sm">Relaycode</div>
+              <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 p-3 bg-secondary rounded-lg shadow-lg text-sm">LLM</div>
+              <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 p-3 bg-secondary rounded-lg shadow-lg text-sm">Your Repo</div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+  src/components/landing/Footer.tsx: |-
+    import { finalCta } from "@/content/landing";
+    import { Github } from "lucide-react";
+    import { Button } from "../ui/button";
+    import { DiscordIcon } from "../ui/DiscordIcon";
+
+    export function Footer() {
+      return (
+        <footer className="border-t border-border/40 bg-secondary/20">
+          <div className="container py-12 text-center">
+            <h2 className="text-3xl font-bold tracking-tight glow-text mb-6">
+              {finalCta.title}
+            </h2>
+            <div className="flex justify-center gap-2 mb-8">
+              <Button variant="ghost" size="icon" asChild>
+                <a href="https://go.noca.pro/relaycode-discord" target="_blank" rel="noreferrer" aria-label="Discord Community">
+                  <DiscordIcon className="h-5 w-5" />
+                </a>
+              </Button>
+              <Button variant="ghost" size="icon" asChild>
+                <a href="https://go.noca.pro/relaycoder-cli-github" target="_blank" rel="noreferrer" aria-label="GitHub Repository">
+                  <Github className="h-5 w-5" />
+                </a>
+              </Button>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              © {new Date().getFullYear()} Relaycode. Built by Arman.
+            </p>
+          </div>
+        </footer>
+      );
+    }
+approved: true

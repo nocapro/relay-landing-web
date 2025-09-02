@@ -1,0 +1,320 @@
+uuid: 440dd979-450b-46a4-ae74-9c04909a1da6
+projectId: relay-landing-web
+createdAt: '2025-09-02T02:02:50.778Z'
+linesAdded: 52
+linesRemoved: 14
+gitCommitMsg: 'feat: redesign header/footer and add demo video'
+promptSummary: >-
+  Refactor header and footer, update social links, and add a YouTube demo video
+  to the landing page.
+reasoning:
+  - 'k, router. here''s the plan:'
+  - >-
+    1.  **Header & Footer:** Ripped out the old ones. new header is cleaner,
+    just github/discord icons. new footer is centered with a big cta and the
+    same socials.
+  - >-
+    2.  **Socials:** Added a discord icon component since lucide doesn't have
+    one. updated all social links to the `go.noca.pro` shortlinks as requested.
+  - >-
+    3.  **Demo Video:** Dropped in a new `VideoDemo` component with a youtube
+    embed. placed it right after the features section so people see it quick.
+    the old cli animation is still there, just after the video.
+  - let's push.
+  - First, I'll create the new `DiscordIcon` component.
+  - Next, I'll update the header.
+  - Now for the footer facelift.
+  - Here's the new `VideoDemo` component.
+  - Finally, I'll add the new video component to the main landing page.
+operations:
+  - type: write
+    path: src/components/ui/DiscordIcon.tsx
+    content: |-
+      export const DiscordIcon = (props: React.ComponentProps<'svg'>) => (
+        <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" {...props}>
+          <title>Discord</title>
+          <path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4464.8245-.6667 1.2828-2.28 0-4.56.0002-6.8402 0-.2203-.4583-.4558-.9075-.6668-1.2828a.0741.0741 0 00-.0785-.0371 19.7913 19.7913 0 00-4.8851 1.5152.069.069 0 00-.0321.0252c-1.8431 4.0857-1.8431 8.2435 0 12.3292a.069.069 0 00.0321.0252 19.7842 19.7842 0 005.0785 1.5587.0741.0741 0 00.084-.0615c.2203-.6836.467-1.4234.6862-2.1834a.0741.0741 0 00-.0576-.0883 11.0221 11.0221 0 01-1.9213-.7094.0741.0741 0 01-.0182-.1111c.4516-.4196.8683-.8684 1.248-1.346a.0741.0741 0 01.0615-.0182c2.4455 1.5662 5.3372 1.5662 7.7827 0a.0741.0741 0 01.0615.0182c.3797.4776.7964.9264 1.248 1.346a.0741.0741 0 01-.0182.1111 11.0221 11.0221 0 01-1.9213.7094.0741.0741 0 00-.0576.0883c.2192.7598.4658 1.4996.6862 2.1834a.0741.0741 0 00.084.0615 19.7842 19.7842 0 005.0785-1.5587.069.069 0 00.0321-.0252c1.843-4.0857 1.843-8.2435 0-12.3292a.069.069 0 00-.0321-.0252zM8.02 15.3312c-.7824 0-1.418-1.094-1.418-2.422s.6356-2.422 1.418-2.422c.7823 0 1.418 1.094 1.418 2.422s-.6357 2.422-1.418 2.422zm7.96 0c-.7824 0-1.418-1.094-1.418-2.422s.6356-2.422 1.418-2.422c.7824 0 1.418 1.094 1.418 2.422s-.6356 2.422-1.418 2.422z" fill="currentColor"/>
+        </svg>
+      );
+    patchStrategy: replace
+  - type: write
+    path: src/components/landing/Header.tsx
+    content: >-
+      --- src/components/landing/Header.tsx
+
+      +++ src/components/landing/Header.tsx
+
+      @@ -1,22 +1,24 @@
+       import { Button } from "@/components/ui/button";
+       import { Github } from 'lucide-react';
+      +import { DiscordIcon } from "../ui/DiscordIcon";
+       
+       export function Header() {
+         return (
+      -    <header className="sticky top-0 z-50 w-full border-b border-border/40
+      bg-background/95 backdrop-blur
+      supports-[backdrop-filter]:bg-background/60">
+
+      -      <div className="container flex h-14 items-center">
+
+      +    <header className="sticky top-0 z-50 w-full border-b border-border/40
+      bg-background">
+
+      +      <div className="container flex h-16 items-center">
+               <div className="mr-4 flex items-center">
+                 <span className="font-bold">Relaycode</span>
+               </div>
+               <div className="flex flex-1 items-center justify-end space-x-4">
+                 <nav className="flex items-center space-x-1">
+                   <Button variant="ghost" size="icon" asChild>
+      -              <a href="https://github.com/arman-g/relaycode"
+      target="_blank" rel="noreferrer" aria-label="GitHub Repository">
+
+      +              <a href="https://go.noca.pro/relaycode-discord"
+      target="_blank" rel="noreferrer" aria-label="Discord Community">
+
+      +                <DiscordIcon className="h-5 w-5" />
+
+      +              </a>
+
+      +            </Button>
+
+      +            <Button variant="ghost" size="icon" asChild>
+
+      +              <a href="https://go.noca.pro/relaycoder-cli-github"
+      target="_blank" rel="noreferrer" aria-label="GitHub Repository">
+                       <Github className="h-5 w-5" />
+                     </a>
+                   </Button>
+      -            <Button asChild>
+
+      -              <a href="https://www.noca.pro" target="_blank"
+      rel="noreferrer">
+
+      -                Get Web Version
+
+      -              </a>
+
+      -            </Button>
+                 </nav>
+               </div>
+             </div>
+    patchStrategy: new-unified
+  - type: write
+    path: src/components/landing/Footer.tsx
+    content: >-
+      --- src/components/landing/Footer.tsx
+
+      +++ src/components/landing/Footer.tsx
+
+      @@ -1,15 +1,28 @@
+       import { finalCta } from "@/content/landing";
+      +import { Github } from "lucide-react";
+
+      +import { Button } from "../ui/button";
+
+      +import { DiscordIcon } from "../ui/DiscordIcon";
+       
+       export function Footer() {
+         return (
+      -    <footer className="border-t border-border/40">
+
+      -      <div className="container flex flex-col items-center
+      justify-between gap-4 py-10 md:h-24 md:flex-row md:py-0">
+
+      -        <div className="flex flex-col items-center gap-4 px-8 md:flex-row
+      md:gap-2 md:px-0">
+
+      -          <p className="text-center text-2xl font-bold leading-loose
+      md:text-left glow-text">
+
+      -            {finalCta.title}
+
+      -          </p>
+
+      -        </div>
+
+      -        <p className="text-center text-sm text-muted-foreground">
+
+      +    <footer className="border-t border-border/40 bg-secondary/20">
+
+      +      <div className="container py-12 text-center">
+
+      +        <h2 className="text-3xl font-bold tracking-tight glow-text mb-6">
+
+      +          {finalCta.title}
+
+      +        </h2>
+
+      +        <div className="flex justify-center gap-2 mb-8">
+
+      +          <Button variant="ghost" size="icon" asChild>
+
+      +            <a href="https://go.noca.pro/relaycode-discord"
+      target="_blank" rel="noreferrer" aria-label="Discord Community">
+
+      +              <DiscordIcon className="h-5 w-5" />
+
+      +            </a>
+
+      +          </Button>
+
+      +          <Button variant="ghost" size="icon" asChild>
+
+      +            <a href="https://go.noca.pro/relaycoder-cli-github"
+      target="_blank" rel="noreferrer" aria-label="GitHub Repository">
+
+      +              <Github className="h-5 w-5" />
+
+      +            </a>
+
+      +          </Button>
+
+      +        </div>
+
+      +        <p className="text-sm text-muted-foreground">
+                 © {new Date().getFullYear()} Relaycode. Built by Arman.
+               </p>
+             </div>
+    patchStrategy: new-unified
+  - type: write
+    path: src/components/landing/VideoDemo.tsx
+    content: |-
+      export function VideoDemo() {
+        return (
+          <div className="text-center">
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-8">See it in Action</h2>
+            <div className="relative aspect-video max-w-4xl mx-auto rounded-lg overflow-hidden glow-border">
+              <iframe
+                className="absolute top-0 left-0 w-full h-full"
+                src="https://www.youtube.com/embed/dQw4w9WgXcQ?si=OFYldzB9zt2fhG-d&autoplay=1&mute=1&loop=1&playlist=dQw4w9WgXcQ&controls=0&showinfo=0&rel=0"
+                title="Relaycode Demo Video"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              ></iframe>
+            </div>
+          </div>
+        );
+      }
+    patchStrategy: replace
+  - type: write
+    path: src/pages/LandingPage.tsx
+    content: |-
+      --- src/pages/LandingPage.tsx
+      +++ src/pages/LandingPage.tsx
+      @@ -2,6 +2,7 @@
+       import { Problem } from "@/components/landing/Problem";
+       import { Solution } from "@/components/landing/Solution";
+       import { Demo } from "@/components/landing/Demo";
+      +import { VideoDemo } from "@/components/landing/VideoDemo";
+       import { Roadmap } from "@/components/landing/Roadmap";
+       import { WhoFor } from "@/components/landing/WhoFor";
+       import { CTA } from "@/components/landing/CTA";
+      @@ -21,6 +22,7 @@
+               
+               {/* Features & Demo */}
+               <Section><Solution /></Section>
+      +        <Section><VideoDemo /></Section>
+               <Section><Demo /></Section>
+               
+               {/* The Why */}
+    patchStrategy: new-unified
+snapshot:
+  src/components/ui/DiscordIcon.tsx: null
+  src/components/landing/VideoDemo.tsx: null
+  src/components/landing/Header.tsx: |-
+    import { Button } from "@/components/ui/button";
+    import { Github } from 'lucide-react';
+
+    export function Header() {
+      return (
+        <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="container flex h-14 items-center">
+            <div className="mr-4 flex items-center">
+              <span className="font-bold">Relaycode</span>
+            </div>
+            <div className="flex flex-1 items-center justify-end space-x-4">
+              <nav className="flex items-center space-x-1">
+                <Button variant="ghost" size="icon" asChild>
+                  <a href="https://github.com/arman-g/relaycode" target="_blank" rel="noreferrer" aria-label="GitHub Repository">
+                    <Github className="h-5 w-5" />
+                  </a>
+                </Button>
+                <Button asChild>
+                  <a href="https://www.noca.pro" target="_blank" rel="noreferrer">
+                    Get Web Version
+                  </a>
+                </Button>
+              </nav>
+            </div>
+          </div>
+        </header>
+      );
+    }
+  src/components/landing/Footer.tsx: |-
+    import { finalCta } from "@/content/landing";
+
+    export function Footer() {
+      return (
+        <footer className="border-t border-border/40">
+          <div className="container flex flex-col items-center justify-between gap-4 py-10 md:h-24 md:flex-row md:py-0">
+            <div className="flex flex-col items-center gap-4 px-8 md:flex-row md:gap-2 md:px-0">
+              <p className="text-center text-2xl font-bold leading-loose md:text-left glow-text">
+                {finalCta.title}
+              </p>
+            </div>
+            <p className="text-center text-sm text-muted-foreground">
+              © {new Date().getFullYear()} Relaycode. Built by Arman.
+            </p>
+          </div>
+        </footer>
+      );
+    }
+  src/pages/LandingPage.tsx: |-
+    import { Hero } from "@/components/landing/Hero";
+    import { Problem } from "@/components/landing/Problem";
+    import { Solution } from "@/components/landing/Solution";
+    import { Demo } from "@/components/landing/Demo";
+    import { Roadmap } from "@/components/landing/Roadmap";
+    import { WhoFor } from "@/components/landing/WhoFor";
+    import { CTA } from "@/components/landing/CTA";
+    import { FAQ } from "@/components/landing/FAQ";
+    import { Footer } from "@/components/landing/Footer";
+    import { Header } from "@/components/landing/Header";
+
+    // A wrapper for consistent spacing and centering
+    const Section = ({ children }: { children: React.ReactNode }) => (
+      <section className="container mx-auto px-4 md:px-6 py-16 md:py-24 lg:py-32">
+        {children}
+      </section>
+    );
+
+    export function LandingPage() {
+      return (
+        <div className="flex flex-col min-h-screen bg-background text-foreground antialiased">
+          <Header />
+          <main className="flex-grow">
+            <Hero />
+            
+            {/* Features & Demo */}
+            <Section><Solution /></Section>
+            <Section><Demo /></Section>
+            
+            {/* The Why */}
+            <div className="bg-secondary/30"><Section><Problem /></Section></div>
+            
+            {/* Companion Tool & Audience */}
+            <Section><Roadmap /></Section>
+            <div className="bg-secondary/30"><Section><WhoFor /></Section></div>
+            
+            {/* FAQ & Final CTA */}
+            <Section><FAQ /></Section>
+            <div className="bg-gradient-to-t from-blue-900/20 to-transparent">
+              <Section><CTA /></Section>
+            </div>
+          </main>
+          <Footer />
+        </div>
+      );
+    }
+approved: true

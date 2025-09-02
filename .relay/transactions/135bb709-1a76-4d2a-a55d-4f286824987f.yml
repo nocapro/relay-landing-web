@@ -1,0 +1,447 @@
+uuid: 135bb709-1a76-4d2a-a55d-4f286824987f
+projectId: relay-landing-web
+createdAt: '2025-09-02T02:09:49.208Z'
+linesAdded: 59
+linesRemoved: 35
+gitCommitMsg: 'feat: redesign hero with demo and add svg logo to header'
+promptSummary: Improve hero section and fix header logo.
+reasoning:
+  - >-
+    Alright, let's ship it. Here are the updates to improve the hero section and
+    header logo.
+  - First, creating a new `Logo.tsx` component to house the SVG.
+  - >-
+    Next, updating the header to use the new logo and improve its appearance. A
+    little backdrop-blur for style points.
+  - >-
+    Refactoring `Demo.tsx` slightly to make it more composable by removing an
+    unnecessary wrapper.
+  - >-
+    Now for the main event: integrating the `Demo` component into the `Hero`
+    section for a more impactful first impression.
+  - >-
+    Finally, cleaning up `LandingPage.tsx` by removing the now-redundant `Demo`
+    section.
+  - Looks good. The hero is punchier and the header is cleaner.
+operations:
+  - type: write
+    path: src/components/ui/Logo.tsx
+    content: |-
+      export const Logo = (props: React.ComponentProps<'svg'>) => (
+        <svg width="24" height="24" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+          <rect width="64" height="64" rx="12" fill="#0A0A0A"/>
+          <path d="M20 18H32C37.5228 18 42 22.4772 42 28C42 33.5228 37.5228 38 32 38H20V18Z" stroke="url(#paint0_linear_1_1_logo)" strokeWidth="4"/>
+          <path d="M32 38L44 46" stroke="url(#paint1_linear_1_1_logo)" strokeWidth="4"/>
+          <defs>
+            <linearGradient id="paint0_linear_1_1_logo" x1="20" y1="18" x2="42" y2="38" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#38BDF8"/>
+              <stop offset="1" stopColor="#22D3EE"/>
+            </linearGradient>
+            <linearGradient id="paint1_linear_1_1_logo" x1="32" y1="38" x2="44" y2="46" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#38BDF8"/>
+              <stop offset="1" stopColor="#22D3EE"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      );
+    patchStrategy: replace
+  - type: write
+    path: src/components/landing/Header.tsx
+    content: >-
+      --- src/components/landing/Header.tsx
+
+      +++ src/components/landing/Header.tsx
+
+      @@ -1,13 +1,18 @@
+       import { Button } from "@/components/ui/button";
+       import { Github } from 'lucide-react';
+      +import { Link } from "react-router-dom";
+       import { DiscordIcon } from "../ui/DiscordIcon";
+      +import { Logo } from "../ui/Logo";
+       
+       export function Header() {
+         return (
+      -    <header className="sticky top-0 z-50 w-full border-b border-border/40
+      bg-background">
+
+      +    <header className="sticky top-0 z-50 w-full border-b border-border/40
+      bg-background/80 backdrop-blur-sm">
+             <div className="container flex h-16 items-center">
+      -        <div className="mr-4 flex items-center">
+
+      +        <Link to="/" className="mr-6 flex items-center space-x-2">
+
+      +          <Logo className="h-6 w-6" />
+                 <span className="font-bold">Relaycode</span>
+      -        </div>
+
+      +        </Link>
+               <div className="flex flex-1 items-center justify-end space-x-4">
+                 <nav className="flex items-center space-x-1">
+                   <Button variant="ghost" size="icon" asChild>
+    patchStrategy: new-unified
+  - type: write
+    path: src/components/landing/Demo.tsx
+    content: >-
+      --- src/components/landing/Demo.tsx
+
+      +++ src/components/landing/Demo.tsx
+
+      @@ -9,16 +9,14 @@
+           { text: "✨ All checks passed. Ready for review.", muted: false },
+         ];
+         return (
+      -    <div className="text-center">
+
+      -      <div className="relative code-block max-w-2xl mx-auto p-6
+      glow-border">
+
+      -        <div className="absolute -top-3 -left-3 w-3 h-3 bg-primary
+      rounded-full animate-ping"></div>
+
+      -        <div className="absolute -top-3 -left-3 w-3 h-3 bg-primary
+      rounded-full"></div>
+
+      -        <div className="font-mono text-left">
+
+      -          <AnimatedList lines={lines} initialDelay={200} />
+
+      -        </div>
+
+      -        <div className="absolute top-4 right-4 text-xs
+      text-muted-foreground">LIVE</div>
+
+      +    <div className="relative code-block max-w-2xl mx-auto p-6
+      glow-border">
+
+      +      <div className="absolute -top-3 -left-3 w-3 h-3 bg-primary
+      rounded-full animate-ping"></div>
+
+      +      <div className="absolute -top-3 -left-3 w-3 h-3 bg-primary
+      rounded-full"></div>
+
+      +      <div className="font-mono text-left">
+
+      +        <AnimatedList lines={lines} initialDelay={200} />
+             </div>
+      +      <div className="absolute top-4 right-4 text-xs
+      text-muted-foreground">LIVE</div>
+           </div>
+         );
+       }
+    patchStrategy: new-unified
+  - type: write
+    path: src/components/landing/Hero.tsx
+    content: >-
+      --- src/components/landing/Hero.tsx
+
+      +++ src/components/landing/Hero.tsx
+
+      @@ -1,7 +1,7 @@
+       import { hero } from "@/content/landing";
+       import { Button } from "@/components/ui/button";
+       import { ArrowRight, Copy } from "lucide-react";
+      -import { AnimatedList } from "../ui/AnimatedList";
+
+      +import { Demo } from "./Demo";
+       
+       export function Hero() {
+         const copyToClipboard = () => {
+      @@ -13,33 +13,34 @@
+                 <div className="blur-[106px] h-56 bg-gradient-to-br from-primary to-purple-400"></div>
+                 <div className="blur-[106px] h-32 bg-gradient-to-r from-cyan-400 to-sky-300"></div>
+             </div>
+      -      <div className="container relative mx-auto px-4 md:px-6 py-24
+      md:py-32 lg:py-40 text-center">
+
+      -        <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold
+      tracking-tighter mb-6 animate-fade-in">
+
+      -          {hero.title}
+
+      -        </h1>
+
+      -        <div className="max-w-3xl mx-auto text-lg md:text-xl
+      text-muted-foreground mb-10 animate-fade-in" style={{ animationDelay:
+      '200ms' }}>
+
+      -          <AnimatedList lines={[{ text: hero.subtitle }]}
+      initialDelay={300} />
+
+      -        </div>
+
+      -        <div className="flex flex-col sm:flex-row items-center
+      justify-center gap-4 animate-fade-in" style={{ animationDelay: '400ms' }}>
+
+      -          <div className="code-block flex items-center gap-4">
+
+      -            <span className="text-muted-foreground">$</span>
+
+      -            <code>bun install -g relaycode</code>
+
+      -            <Button variant="ghost" size="icon"
+      onClick={copyToClipboard}>
+
+      -              <Copy className="h-4 w-4" />
+
+      -            </Button>
+
+      +      <div className="container relative mx-auto px-4 md:px-6 py-24
+      md:py-32">
+
+      +        <div className="grid lg:grid-cols-2 gap-12 items-center">
+
+      +          <div className="text-center lg:text-left">
+
+      +            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold
+      tracking-tighter mb-6 animate-fade-in">
+
+      +              {hero.title}
+
+      +            </h1>
+
+      +            <p className="max-w-xl mx-auto lg:mx-0 text-lg md:text-xl
+      text-muted-foreground mb-10 animate-fade-in" style={{ animationDelay:
+      '200ms' }}>
+
+      +              {hero.subtitle}
+
+      +            </p>
+
+      +            <div className="flex flex-col sm:flex-row items-center
+      justify-center lg:justify-start gap-4 animate-fade-in" style={{
+      animationDelay: '400ms' }}>
+
+      +              <div className="code-block flex items-center gap-4">
+
+      +                <span className="text-muted-foreground">$</span>
+
+      +                <code>bun install -g relaycode</code>
+
+      +                <Button variant="ghost" size="icon"
+      onClick={copyToClipboard}>
+
+      +                  <Copy className="h-4 w-4" />
+
+      +                </Button>
+
+      +              </div>
+
+      +              <Button size="lg" asChild>
+
+      +                <a href="https://www.noca.pro" target="_blank"
+      rel="noreferrer">
+
+      +                  Try Web Version <ArrowRight className="ml-2 h-5 w-5" />
+
+      +                </a>
+
+      +              </Button>
+
+      +            </div>
+
+      +            <p className="mt-4 text-sm text-muted-foreground
+      animate-fade-in" style={{ animationDelay: '500ms' }}>
+
+      +              Built by Arman for solo devs.
+
+      +            </p>
+                 </div>
+      -          <Button size="lg" asChild>
+
+      -            <a href="https://www.noca.pro" target="_blank"
+      rel="noreferrer">
+
+      -              Try Web Version <ArrowRight className="ml-2 h-5 w-5" />
+
+      -            </a>
+
+      -          </Button>
+
+      -        </div>
+
+      -        <p className="mt-4 text-sm text-muted-foreground animate-fade-in"
+      style={{ animationDelay: '500ms' }}>
+
+      -          Built by Arman for solo devs.
+
+      -        </p>
+
+      +          <div className="mt-12 lg:mt-0 animate-fade-in" style={{
+      animationDelay: '600ms' }}>
+
+      +            <Demo />
+
+      +          </div>
+
+      +        </div>
+             </div>
+           </section>
+         );
+    patchStrategy: new-unified
+  - type: write
+    path: src/pages/LandingPage.tsx
+    content: |-
+      --- src/pages/LandingPage.tsx
+      +++ src/pages/LandingPage.tsx
+      @@ -20,7 +20,6 @@
+               {/* Features & Demo */}
+               <Section><Solution /></Section>
+               <Section><VideoDemo /></Section>
+      -        <Section><Demo /></Section>
+               
+               {/* The Why */}
+               <div className="bg-secondary/30"><Section><Problem /></Section></div>
+    patchStrategy: new-unified
+snapshot:
+  src/components/ui/Logo.tsx: null
+  src/components/landing/Demo.tsx: |-
+    import { AnimatedList } from "../ui/AnimatedList";
+
+    export function Demo() {
+      const lines = [
+        { text: "$ relay watch", muted: false },
+        { text: "Watching for clipboard changes...", muted: true },
+        { text: "✓ Patch detected. Applying...", muted: false },
+        { text: "✓ Running tests...", muted: false },
+        { text: "✓ Linting files...", muted: false },
+        { text: "✨ All checks passed. Ready for review.", muted: false },
+      ];
+      return (
+        <div className="text-center">
+          <div className="relative code-block max-w-2xl mx-auto p-6 glow-border">
+            <div className="absolute -top-3 -left-3 w-3 h-3 bg-primary rounded-full animate-ping"></div>
+            <div className="absolute -top-3 -left-3 w-3 h-3 bg-primary rounded-full"></div>
+            <div className="font-mono text-left">
+              <AnimatedList lines={lines} initialDelay={200} />
+            </div>
+            <div className="absolute top-4 right-4 text-xs text-muted-foreground">LIVE</div>
+          </div>
+        </div>
+      );
+    }
+  src/components/landing/Hero.tsx: |-
+    import { hero } from "@/content/landing";
+    import { Button } from "@/components/ui/button";
+    import { ArrowRight, Copy } from "lucide-react";
+    import { AnimatedList } from "../ui/AnimatedList";
+
+    export function Hero() {
+      const copyToClipboard = () => {
+        navigator.clipboard.writeText("bun install -g relaycode");
+      };
+
+      return (
+        <section className="relative overflow-hidden">
+          <div aria-hidden="true" className="absolute inset-0 grid grid-cols-2 -space-x-52 opacity-20">
+              <div className="blur-[106px] h-56 bg-gradient-to-br from-primary to-purple-400"></div>
+              <div className="blur-[106px] h-32 bg-gradient-to-r from-cyan-400 to-sky-300"></div>
+          </div>
+          <div className="container relative mx-auto px-4 md:px-6 py-24 md:py-32 lg:py-40 text-center">
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tighter mb-6 animate-fade-in">
+              {hero.title}
+            </h1>
+            <div className="max-w-3xl mx-auto text-lg md:text-xl text-muted-foreground mb-10 animate-fade-in" style={{ animationDelay: '200ms' }}>
+              <AnimatedList lines={[{ text: hero.subtitle }]} initialDelay={300} />
+            </div>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in" style={{ animationDelay: '400ms' }}>
+              <div className="code-block flex items-center gap-4">
+                <span className="text-muted-foreground">$</span>
+                <code>bun install -g relaycode</code>
+                <Button variant="ghost" size="icon" onClick={copyToClipboard}>
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+              <Button size="lg" asChild>
+                <a href="https://www.noca.pro" target="_blank" rel="noreferrer">
+                  Try Web Version <ArrowRight className="ml-2 h-5 w-5" />
+                </a>
+              </Button>
+            </div>
+            <p className="mt-4 text-sm text-muted-foreground animate-fade-in" style={{ animationDelay: '500ms' }}>
+              Built by Arman for solo devs.
+            </p>
+          </div>
+        </section>
+      );
+    }
+  src/pages/LandingPage.tsx: |-
+    import { Hero } from "@/components/landing/Hero";
+    import { Problem } from "@/components/landing/Problem";
+    import { Solution } from "@/components/landing/Solution";
+    import { Demo } from "@/components/landing/Demo";
+    import { VideoDemo } from "@/components/landing/VideoDemo";
+    import { Roadmap } from "@/components/landing/Roadmap";
+    import { WhoFor } from "@/components/landing/WhoFor";
+    import { CTA } from "@/components/landing/CTA";
+    import { FAQ } from "@/components/landing/FAQ";
+    import { Footer } from "@/components/landing/Footer";
+    import { Header } from "@/components/landing/Header";
+
+    // A wrapper for consistent spacing and centering
+    const Section = ({ children }: { children: React.ReactNode }) => (
+      <section className="container mx-auto px-4 md:px-6 py-16 md:py-24 lg:py-32">
+        {children}
+      </section>
+    );
+
+    export function LandingPage() {
+      return (
+        <div className="flex flex-col min-h-screen bg-background text-foreground antialiased">
+          <Header />
+          <main className="flex-grow">
+            <Hero />
+            
+            {/* Features & Demo */}
+            <Section><Solution /></Section>
+            <Section><VideoDemo /></Section>
+            <Section><Demo /></Section>
+            
+            {/* The Why */}
+            <div className="bg-secondary/30"><Section><Problem /></Section></div>
+            
+            {/* Companion Tool & Audience */}
+            <Section><Roadmap /></Section>
+            <div className="bg-secondary/30"><Section><WhoFor /></Section></div>
+            
+            {/* FAQ & Final CTA */}
+            <Section><FAQ /></Section>
+            <div className="bg-gradient-to-t from-blue-900/20 to-transparent">
+              <Section><CTA /></Section>
+            </div>
+          </main>
+          <Footer />
+        </div>
+      );
+    }
+  src/components/landing/Header.tsx: |-
+    import { Button } from "@/components/ui/button";
+    import { Github } from 'lucide-react';
+    import { DiscordIcon } from "../ui/DiscordIcon";
+
+    export function Header() {
+      return (
+        <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background">
+          <div className="container flex h-16 items-center">
+            <div className="mr-4 flex items-center">
+              <span className="font-bold">Relaycode</span>
+            </div>
+            <div className="flex flex-1 items-center justify-end space-x-4">
+              <nav className="flex items-center space-x-1">
+                <Button variant="ghost" size="icon" asChild>
+                  <a href="https://go.noca.pro/relaycode-discord" target="_blank" rel="noreferrer" aria-label="Discord Community">
+                    <DiscordIcon className="h-5 w-5" />
+                  </a>
+                </Button>
+                <Button variant="ghost" size="icon" asChild>
+                  <a href="https://go.noca.pro/relaycoder-cli-github" target="_blank" rel="noreferrer" aria-label="GitHub Repository">
+                    <Github className="h-5 w-5" />
+                  </a>
+                </Button>
+              </nav>
+            </div>
+          </div>
+        </header>
+      );
+    }
+approved: true

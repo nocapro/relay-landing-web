@@ -1,0 +1,161 @@
+uuid: 4409386d-6a56-42d6-84d4-6e69ddc6778f
+projectId: relay-landing-web
+createdAt: '2025-09-02T02:26:08.235Z'
+linesAdded: 5
+linesRemoved: 4
+gitCommitMsg: 'feat(landing): enhance demo with more file ops and adjust hero CTA layout'
+promptSummary: >-
+  Update the demo component to show more file operations (edit, delete, move)
+  and reposition the 'Try Web Version' button below the install command in the
+  hero section.
+reasoning:
+  - >-
+    k, hacker. got it. updating the demo with more file ops and tweaking hero
+    layout.
+  - >-
+    first, spicing up the demo component to show `created`, `edited`, `deleted`,
+    and `moved` operations. makes it look more capable.
+  - >-
+    next, rearranging the hero section. install command and web version button
+    should stack vertically. a simple flexbox tweak will do.
+operations:
+  - type: write
+    path: src/components/landing/Demo.tsx
+    content: >-
+      --- src/components/landing/Demo.tsx
+
+      +++ src/components/landing/Demo.tsx
+
+      @@ -4,12 +4,12 @@
+           { text: "$ relay watch" },
+           { text: "Watching for clipboard changes...", muted: true },
+           { text: "New clipboard content detected...", muted: true },
+           { text: "✓ Valid patch detected. Processing..." },
+           { text: "🚀 Starting transaction..." },
+      -    { text: "✔ Written: src/components/Hero.tsx (+44, -0)", className:
+      "text-green-400" },
+
+      -    { text: "✔ Written: src/pages/LandingPage.tsx (+45, -1)", className:
+      "text-green-400" },
+
+      -    { text: "✔ Written: vite.config.ts (+4, -1)", className:
+      "text-green-400" },
+
+      +    { text: "✔ Created: src/components/ui/Button.tsx (+88, -0)",
+      className: "text-green-400" },
+
+      +    { text: "✔ Edited: src/pages/LandingPage.tsx (+5, -2)", className:
+      "text-yellow-400" },
+
+      +    { text: "✔ Deleted: src/utils/old-helper.ts", className:
+      "text-red-400" },
+
+      +    { text: "✔ Moved: src/assets/logo.svg -> src/components/ui/Logo.tsx",
+      className: "text-blue-400" },
+           { text: "...", muted: true },
+           { text: "✨ Checks complete. Ready for review.", className: "glow-text" },
+         ];
+    patchStrategy: new-unified
+  - type: write
+    path: src/components/landing/Hero.tsx
+    content: >-
+      --- src/components/landing/Hero.tsx
+
+      +++ src/components/landing/Hero.tsx
+
+      @@ -16,7 +16,7 @@
+                   <p className="max-w-xl mx-auto lg:mx-0 text-lg md:text-xl text-muted-foreground mb-10 animate-fade-in" style={{ animationDelay: '200ms' }}>
+                     {hero.subtitle}
+                   </p>
+      -            <div className="flex flex-col sm:flex-row items-center
+      justify-center lg:justify-start gap-4 animate-fade-in" style={{
+      animationDelay: '400ms' }}>
+
+      +            <div className="flex flex-col items-center lg:items-start
+      gap-4 animate-fade-in" style={{ animationDelay: '400ms' }}>
+                     <div className="code-block flex items-center gap-4">
+                       <span className="text-muted-foreground">$</span>
+                       <code>bun install -g relaycode</code>
+    patchStrategy: new-unified
+snapshot:
+  src/components/landing/Demo.tsx: |-
+    import { AnimatedList } from "../ui/AnimatedList";
+
+    export function Demo() {
+      const lines = [
+        { text: "$ relay watch" },
+        { text: "Watching for clipboard changes...", muted: true },
+        { text: "New clipboard content detected...", muted: true },
+        { text: "✓ Valid patch detected. Processing..." },
+        { text: "🚀 Starting transaction..." },
+        { text: "✔ Written: src/components/Hero.tsx (+44, -0)", className: "text-green-400" },
+        { text: "✔ Written: src/pages/LandingPage.tsx (+45, -1)", className: "text-green-400" },
+        { text: "✔ Written: vite.config.ts (+4, -1)", className: "text-green-400" },
+        { text: "...", muted: true },
+        { text: "✨ Checks complete. Ready for review.", className: "glow-text" },
+      ];
+      return (
+        <div className="relative code-block max-w-2xl mx-auto p-6 glow-border">
+          <div className="absolute -top-3 -left-3 w-3 h-3 bg-primary rounded-full animate-ping"></div>
+          <div className="absolute -top-3 -left-3 w-3 h-3 bg-primary rounded-full"></div>
+          <div className="font-mono text-left">
+            <AnimatedList lines={lines} initialDelay={200} />
+          </div>
+          <div className="absolute top-4 right-4 text-xs text-muted-foreground">LIVE</div>
+        </div>
+      );
+    }
+  src/components/landing/Hero.tsx: |-
+    import { hero } from "@/content/landing";
+    import { Button } from "@/components/ui/button";
+    import { ArrowRight, Copy } from "lucide-react";
+    import { Demo } from "./Demo";
+
+    export function Hero() {
+      const copyToClipboard = () => {
+        navigator.clipboard.writeText("bun install -g relaycode");
+      };
+
+      return (
+        <section className="relative overflow-hidden">
+          <div aria-hidden="true" className="absolute inset-0 grid grid-cols-2 -space-x-52 opacity-20">
+              <div className="blur-[106px] h-56 bg-gradient-to-br from-primary to-purple-400"></div>
+              <div className="blur-[106px] h-32 bg-gradient-to-r from-cyan-400 to-sky-300"></div>
+          </div>
+          <div className="container relative mx-auto px-4 md:px-6 py-24 md:py-32">
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              <div className="text-center lg:text-left">
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter mb-6 animate-fade-in">
+                  {hero.title}
+                </h1>
+                <p className="max-w-xl mx-auto lg:mx-0 text-lg md:text-xl text-muted-foreground mb-10 animate-fade-in" style={{ animationDelay: '200ms' }}>
+                  {hero.subtitle}
+                </p>
+                <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 animate-fade-in" style={{ animationDelay: '400ms' }}>
+                  <div className="code-block flex items-center gap-4">
+                    <span className="text-muted-foreground">$</span>
+                    <code>bun install -g relaycode</code>
+                    <Button variant="ghost" size="icon" onClick={copyToClipboard}>
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <Button size="lg" asChild>
+                    <a href="https://www.noca.pro" target="_blank" rel="noreferrer">
+                      Try Web Version <ArrowRight className="ml-2 h-5 w-5" />
+                    </a>
+                  </Button>
+                </div>
+                <p className="mt-4 text-sm text-muted-foreground animate-fade-in flex items-center justify-center lg:justify-start gap-2" style={{ animationDelay: '500ms' }}>
+                  <img src="https://pbs.twimg.com/profile_images/1961594429338472448/OOzuAD7h_400x400.jpg" alt="Arman" className="w-6 h-6 rounded-full" />
+                  <span>Built by <a href="https://go.noca.pro/x-arman" target="_blank" rel="noreferrer" className="underline hover:text-foreground">Arman</a> for solo devs.</span>
+                </p>
+              </div>
+              <div className="mt-12 lg:mt-0 animate-fade-in" style={{ animationDelay: '600ms' }}>
+                <Demo />
+              </div>
+            </div>
+          </div>
+        </section>
+      );
+    }
+approved: true

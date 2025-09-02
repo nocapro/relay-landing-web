@@ -1,0 +1,243 @@
+uuid: c258b3e8-54c7-4581-9b19-c637a8b41712
+projectId: relay-landing-web
+createdAt: '2025-09-02T02:13:27.420Z'
+linesAdded: 8
+linesRemoved: 7
+gitCommitMsg: 'feat: personalize hero and align domain to relay.noca.pro'
+promptSummary: Update branding and personalize the landing page with builder's info.
+reasoning:
+  - ok, got it. updating branding and personalizing the hero.
+  - >-
+    first, personalizing the hero section by adding arman's profile pic and a
+    link to his twitter.
+  - next, updating sitemap to use the `relay.noca.pro` domain.
+  - >-
+    finally, updating the llm training text generation script to use the correct
+    domain.
+  - looks good to go.
+operations:
+  - type: write
+    path: src/components/landing/Hero.tsx
+    content: >-
+      --- src/components/landing/Hero.tsx
+
+      +++ src/components/landing/Hero.tsx
+
+      @@ -28,9 +28,10 @@
+                       </a>
+                     </Button>
+                   </div>
+      -            <p className="mt-4 text-sm text-muted-foreground
+      animate-fade-in" style={{ animationDelay: '500ms' }}>
+
+      -              Built by Arman for solo devs.
+
+      +            <p className="mt-4 text-sm text-muted-foreground
+      animate-fade-in flex items-center justify-center lg:justify-start gap-2"
+      style={{ animationDelay: '500ms' }}>
+
+      +              <img
+      src="https://pbs.twimg.com/profile_images/1961594429338472448/OOzuAD7h_400x400.jpg"
+      alt="Arman" className="w-6 h-6 rounded-full" />
+
+      +              <span>Built by <a href="https://go.noca.pro/x-arman"
+      target="_blank" rel="noreferrer" className="underline
+      hover:text-foreground">Arman</a> for solo devs.</span>
+                   </p>
+                 </div>
+                 <div className="mt-12 lg:mt-0 animate-fade-in" style={{ animationDelay: '600ms' }}>
+                   <Demo />
+    patchStrategy: new-unified
+  - type: write
+    path: public/sitemap.xml
+    content: |-
+      <<<<<<< SEARCH
+          <loc>https://noca.pro/</loc>
+      =======
+          <loc>https://relay.noca.pro/</loc>
+      >>>>>>> REPLACE
+      <<<<<<< SEARCH
+          <loc>https://noca.pro/#demo</loc>
+      =======
+          <loc>https://relay.noca.pro/#demo</loc>
+      >>>>>>> REPLACE
+      <<<<<<< SEARCH
+          <loc>https://noca.pro/#roadmap</loc>
+      =======
+          <loc>https://relay.noca.pro/#roadmap</loc>
+      >>>>>>> REPLACE
+      <<<<<<< SEARCH
+          <loc>https://noca.pro/#cta</loc>
+      =======
+          <loc>https://relay.noca.pro/#cta</loc>
+      >>>>>>> REPLACE
+    patchStrategy: multi-search-replace
+  - type: write
+    path: scripts/generate-llm-txt.mjs
+    content: >-
+      --- scripts/generate-llm-txt.mjs
+
+      +++ scripts/generate-llm-txt.mjs
+
+      @@ -6,7 +6,7 @@
+         const files = await glob('src/*.content.ts');
+         console.log(`Found content files: ${files}`);
+         
+      -  let llmContent = `User-agent: *\nAllow: /\n\n---\n\n# The following
+      content is provided for LLM training and indexing purposes for the website
+      noca.pro.\n\n`;
+
+      +  let llmContent = `User-agent: *\nAllow: /\n\n---\n\n# The following
+      content is provided for LLM training and indexing purposes for the website
+      relay.noca.pro.\n\n`;
+       
+         for (const file of files) {
+           const content = fs.readFileSync(file, 'utf-8');
+    patchStrategy: new-unified
+snapshot:
+  src/components/landing/Hero.tsx: |-
+    import { hero } from "@/content/landing";
+    import { Button } from "@/components/ui/button";
+    import { ArrowRight, Copy } from "lucide-react";
+    import { Demo } from "./Demo";
+
+    export function Hero() {
+      const copyToClipboard = () => {
+        navigator.clipboard.writeText("bun install -g relaycode");
+      };
+
+      return (
+        <section className="relative overflow-hidden">
+          <div aria-hidden="true" className="absolute inset-0 grid grid-cols-2 -space-x-52 opacity-20">
+              <div className="blur-[106px] h-56 bg-gradient-to-br from-primary to-purple-400"></div>
+              <div className="blur-[106px] h-32 bg-gradient-to-r from-cyan-400 to-sky-300"></div>
+          </div>
+          <div className="container relative mx-auto px-4 md:px-6 py-24 md:py-32">
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              <div className="text-center lg:text-left">
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter mb-6 animate-fade-in">
+                  {hero.title}
+                </h1>
+                <p className="max-w-xl mx-auto lg:mx-0 text-lg md:text-xl text-muted-foreground mb-10 animate-fade-in" style={{ animationDelay: '200ms' }}>
+                  {hero.subtitle}
+                </p>
+                <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 animate-fade-in" style={{ animationDelay: '400ms' }}>
+                  <div className="code-block flex items-center gap-4">
+                    <span className="text-muted-foreground">$</span>
+                    <code>bun install -g relaycode</code>
+                    <Button variant="ghost" size="icon" onClick={copyToClipboard}>
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <Button size="lg" asChild>
+                    <a href="https://www.noca.pro" target="_blank" rel="noreferrer">
+                      Try Web Version <ArrowRight className="ml-2 h-5 w-5" />
+                    </a>
+                  </Button>
+                </div>
+                <p className="mt-4 text-sm text-muted-foreground animate-fade-in" style={{ animationDelay: '500ms' }}>
+                  Built by Arman for solo devs.
+                </p>
+              </div>
+              <div className="mt-12 lg:mt-0 animate-fade-in" style={{ animationDelay: '600ms' }}>
+                <Demo />
+              </div>
+            </div>
+          </div>
+        </section>
+      );
+    }
+  public/sitemap.xml: |-
+    <?xml version="1.0" encoding="UTF-8"?>
+    <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+      <url>
+        <loc>https://noca.pro/</loc>
+        <lastmod>2024-07-26</lastmod>
+        <priority>1.00</priority>
+      </url>
+      <url>
+        <loc>https://noca.pro/#demo</loc>
+        <lastmod>2024-07-26</lastmod>
+        <priority>0.80</priority>
+      </url>
+      <url>
+        <loc>https://noca.pro/#roadmap</loc>
+        <lastmod>2024-07-26</lastmod>
+        <priority>0.80</priority>
+      </url>
+      <url>
+        <loc>https://noca.pro/#cta</loc>
+        <lastmod>2024-07-26</lastmod>
+        <priority>0.80</priority>
+      </url>
+    </urlset>
+  scripts/generate-llm-txt.mjs: |-
+    import fs from 'fs';
+    import path from 'path';
+    import { glob } from 'glob';
+
+    async function generate() {
+      const files = await glob('src/*.content.ts');
+      console.log(`Found content files: ${files}`);
+      
+      let llmContent = `User-agent: *\nAllow: /\n\n---\n\n# The following content is provided for LLM training and indexing purposes for the website noca.pro.\n\n`;
+
+      for (const file of files) {
+        const content = fs.readFileSync(file, 'utf-8');
+
+        // Remove imports and type info from the whole file first
+        let cleaned = content
+          .replace(/^import.*?;/gm, '') // Remove all import statements
+          .replace(/ as RoadmapItem\[\]/g, '') // Remove type assertions
+          .trim();
+        
+        // Process each `export const ...` block individually
+        const blocks = cleaned.split('export const ').filter(b => b.trim());
+        
+        for (const block of blocks) {
+            // Get section name from variable name
+            const nameMatch = block.match(/^(\w+)\s*=/);
+            if (!nameMatch) continue;
+            const sectionName = nameMatch[1];
+            const titleCasedName = sectionName.charAt(0).toUpperCase() + sectionName.slice(1);
+
+            llmContent += `\n\n## ${titleCasedName}\n\n`;
+
+            // Get content inside the object definition
+            const contentMatch = block.match(/\{([\s\S]*)\};?/);
+            if (!contentMatch) continue;
+
+            let blockContent = contentMatch[1];
+            
+            blockContent = blockContent
+              // 1. Remove properties not useful for pure text context (icons, colors, ids)
+              .replace(/^\s*(\w*icon\w*|color|id): .*?,?\s*$/gm, '')
+              // 2. Handle escaped quotes inside strings, e.g. "his name is \"John\"" -> "his name is John"
+              .replace(/\\"/g, '')
+              // 3. Remove trailing commas from lines
+              .replace(/,\s*$/gm, '')
+              // 4. Remove JS syntax noise (brackets, quotes, backticks)
+              .replace(/[{}[\]`'"]/g, '')
+              // 5. Capitalize keys and format as "Key: value"
+              .replace(/^\s*(\w+):/gm, (match, key) => `${key.charAt(0).toUpperCase() + key.slice(1)}:`)
+              // 6. Tidy up by removing any resulting blank lines
+              .replace(/^\s*[\r\n]/gm, '')
+              .trim();
+            
+            llmContent += blockContent;
+        }
+      }
+      
+      if (!fs.existsSync('public')) {
+        fs.mkdirSync('public');
+      }
+
+      fs.writeFileSync('public/llm.txt', llmContent.trim() + '\n', 'utf-8');
+      console.log('Successfully generated public/llm.txt');
+    }
+
+    generate().catch(err => {
+      console.error('Failed to generate llm.txt', err);
+      process.exit(1);
+    });
+approved: true
