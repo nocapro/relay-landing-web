@@ -1,0 +1,50 @@
+uuid: 48dbab68-1971-464a-939e-b5ed51d08794
+projectId: relay-landing-web
+createdAt: '2025-09-02T03:09:17.515Z'
+linesAdded: 1
+linesRemoved: 1
+gitCommitMsg: 'feat: update demo video and disable autoplay'
+promptSummary: Update the embedded YouTube video and disable autoplay.
+reasoning:
+  - >-
+    alright, switching out that youtube embed. no more rick-rolling. i'll update
+    the video URL and kill autoplay as requested.
+operations:
+  - type: write
+    path: src/components/landing/VideoDemo.tsx
+    content: >-
+      --- src/components/landing/VideoDemo.tsx
+
+      +++ src/components/landing/VideoDemo.tsx
+
+      @@ -5,7 +5,7 @@
+             <div className="relative aspect-video max-w-4xl mx-auto rounded-lg overflow-hidden glow-border">
+               <iframe
+                 className="absolute top-0 left-0 w-full h-full"
+      -         
+      src="https://www.youtube.com/embed/dQw4w9WgXcQ?si=OFYldzB9zt2fhG-d&autoplay=1&mute=1&loop=1&playlist=dQw4w9WgXcQ&controls=0&showinfo=0&rel=0"
+
+      +          src="https://www.youtube.com/embed/Io9HT3D5wgU?rel=0"
+                 title="Relaycode Demo Video"
+                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                 allowFullScreen
+    patchStrategy: new-unified
+snapshot:
+  src/components/landing/VideoDemo.tsx: |-
+    export function VideoDemo() {
+      return (
+        <div className="text-center">
+          <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-8">See it in Action</h2>
+          <div className="relative aspect-video max-w-4xl mx-auto rounded-lg overflow-hidden glow-border">
+            <iframe
+              className="absolute top-0 left-0 w-full h-full"
+              src="https://www.youtube.com/embed/dQw4w9WgXcQ?si=OFYldzB9zt2fhG-d&autoplay=1&mute=1&loop=1&playlist=dQw4w9WgXcQ&controls=0&showinfo=0&rel=0"
+              title="Relaycode Demo Video"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+            ></iframe>
+          </div>
+        </div>
+      );
+    }
+approved: true

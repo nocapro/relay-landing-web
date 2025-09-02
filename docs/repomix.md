@@ -32,6 +32,8 @@ src/
       DiscordIcon.tsx
       input.tsx
       Logo.tsx
+      NocaLogo.tsx
+      RepomixLogo.tsx
   content/
     landing.ts
   lib/
@@ -144,12 +146,112 @@ Allow: /
 # See llm.txt for large language model usage rights.
 ````
 
+## File: public/sitemap.xml
+````xml
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://relay.noca.pro/</loc>
+    <lastmod>2024-07-26</lastmod>
+    <priority>1.00</priority>
+  </url>
+  <url>
+    <loc>https://relay.noca.pro/#demo</loc>
+    <lastmod>2024-07-26</lastmod>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://relay.noca.pro/#roadmap</loc>
+    <lastmod>2024-07-26</lastmod>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://relay.noca.pro/#cta</loc>
+    <lastmod>2024-07-26</lastmod>
+    <priority>0.80</priority>
+  </url>
+</urlset>
+````
+
+## File: scripts/generate-llm-txt.mjs
+````
+import fs from 'fs';
+import path from 'path';
+import { glob } from 'glob';
+
+async function generate() {
+  const files = await glob('src/*.content.ts');
+  console.log(`Found content files: ${files}`);
+  
+  let llmContent = `User-agent: *\nAllow: /\n\n---\n\n# The following content is provided for LLM training and indexing purposes for the website relay.noca.pro.\n\n`;
+
+  for (const file of files) {
+    const content = fs.readFileSync(file, 'utf-8');
+
+    // Remove imports and type info from the whole file first
+    let cleaned = content
+      .replace(/^import.*?;/gm, '') // Remove all import statements
+      .replace(/ as RoadmapItem\[\]/g, '') // Remove type assertions
+      .trim();
+    
+    // Process each `export const ...` block individually
+    const blocks = cleaned.split('export const ').filter(b => b.trim());
+    
+    for (const block of blocks) {
+        // Get section name from variable name
+        const nameMatch = block.match(/^(\w+)\s*=/);
+        if (!nameMatch) continue;
+        const sectionName = nameMatch[1];
+        const titleCasedName = sectionName.charAt(0).toUpperCase() + sectionName.slice(1);
+
+        llmContent += `\n\n## ${titleCasedName}\n\n`;
+
+        // Get content inside the object definition
+        const contentMatch = block.match(/\{([\s\S]*)\};?/);
+        if (!contentMatch) continue;
+
+        let blockContent = contentMatch[1];
+        
+        blockContent = blockContent
+          // 1. Remove properties not useful for pure text context (icons, colors, ids)
+          .replace(/^\s*(\w*icon\w*|color|id): .*?,?\s*$/gm, '')
+          // 2. Handle escaped quotes inside strings, e.g. "his name is \"John\"" -> "his name is John"
+          .replace(/\\"/g, '')
+          // 3. Remove trailing commas from lines
+          .replace(/,\s*$/gm, '')
+          // 4. Remove JS syntax noise (brackets, quotes, backticks)
+          .replace(/[{}[\]`'"]/g, '')
+          // 5. Capitalize keys and format as "Key: value"
+          .replace(/^\s*(\w+):/gm, (match, key) => `${key.charAt(0).toUpperCase() + key.slice(1)}:`)
+          // 6. Tidy up by removing any resulting blank lines
+          .replace(/^\s*[\r\n]/gm, '')
+          .trim();
+        
+        llmContent += blockContent;
+    }
+  }
+  
+  if (!fs.existsSync('public')) {
+    fs.mkdirSync('public');
+  }
+
+  fs.writeFileSync('public/llm.txt', llmContent.trim() + '\n', 'utf-8');
+  console.log('Successfully generated public/llm.txt');
+}
+
+generate().catch(err => {
+  console.error('Failed to generate llm.txt', err);
+  process.exit(1);
+});
+````
+
 ## File: src/components/landing/CTA.tsx
 ````typescript
 import { install, webVersion } from "@/content/landing";
 import { Button } from "../ui/button";
 import { Copy, ExternalLink } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
+import { NocaLogo } from "../ui/NocaLogo";
 
 export function CTA() {
   const copyToClipboard = (text: string) => {
@@ -174,7 +276,10 @@ export function CTA() {
       </div>
       <Card className="bg-secondary/50 border-blue-500/30">
         <CardHeader>
-          <CardTitle>{webVersion.title}</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <NocaLogo className="h-6 w-6" />
+            <span>{webVersion.title}</span>
+          </CardTitle>
           <CardDescription>{webVersion.description}</CardDescription>
         </CardHeader>
         <CardContent>
@@ -185,6 +290,37 @@ export function CTA() {
           </Button>
         </CardContent>
       </Card>
+    </div>
+  );
+}
+````
+
+## File: src/components/landing/Demo.tsx
+````typescript
+import { AnimatedList } from "../ui/AnimatedList";
+
+export function Demo() {
+  const lines = [
+    { text: "$ relay watch" },
+    { text: "Watching for clipboard changes...", muted: true },
+    { text: "New clipboard content detected...", muted: true },
+    { text: "✓ Valid patch detected. Processing..." },
+    { text: "🚀 Starting transaction..." },
+    { text: "✔ Created: src/components/ui/Button.tsx (+88, -0)", className: "text-green-400" },
+    { text: "✔ Edited: src/pages/LandingPage.tsx (+5, -2)", className: "text-yellow-400" },
+    { text: "✔ Deleted: src/utils/old-helper.ts", className: "text-red-400" },
+    { text: "✔ Moved: src/assets/logo.svg -> src/components/ui/Logo.tsx", className: "text-blue-400" },
+    { text: "...", muted: true },
+    { text: "✨ Checks complete. Ready for review.", className: "glow-text" },
+  ];
+  return (
+    <div className="relative code-block max-w-2xl mx-auto p-6 glow-border">
+      <div className="absolute -top-3 -left-3 w-3 h-3 bg-primary rounded-full animate-ping"></div>
+      <div className="absolute -top-3 -left-3 w-3 h-3 bg-primary rounded-full"></div>
+      <div className="font-mono text-left">
+        <AnimatedList lines={lines} initialDelay={200} />
+      </div>
+      <div className="absolute top-4 right-4 text-xs text-muted-foreground">LIVE</div>
     </div>
   );
 }
@@ -219,6 +355,136 @@ export function FAQ() {
 }
 ````
 
+## File: src/components/landing/Footer.tsx
+````typescript
+import { finalCta } from "@/content/landing";
+import { Github } from "lucide-react";
+import { Button } from "../ui/button";
+import { DiscordIcon } from "../ui/DiscordIcon";
+
+export function Footer() {
+  return (
+    <footer className="border-t border-border/40 bg-secondary/20">
+      <div className="container py-12 text-center">
+        <h2 className="text-3xl font-bold tracking-tight glow-text mb-6">
+          {finalCta.title}
+        </h2>
+        <div className="flex justify-center gap-2 mb-8">
+          <Button variant="ghost" size="icon" asChild>
+            <a href="https://go.noca.pro/relaycode-discord" target="_blank" rel="noreferrer" aria-label="Discord Community">
+              <DiscordIcon className="h-5 w-5" />
+            </a>
+          </Button>
+          <Button variant="ghost" size="icon" asChild>
+            <a href="https://go.noca.pro/relaycoder-cli-github" target="_blank" rel="noreferrer" aria-label="GitHub Repository">
+              <Github className="h-5 w-5" />
+            </a>
+          </Button>
+        </div>
+        <div className="text-sm text-muted-foreground flex items-center justify-center gap-2">
+          <span>© {new Date().getFullYear()} Relaycode.</span>
+          <span>•</span>
+          <img src="https://pbs.twimg.com/profile_images/1961594429338472448/OOzuAD7h_400x400.jpg" alt="Arman" className="w-5 h-5 rounded-full" />
+          <span>Built by <a href="https://go.noca.pro/x-arman" target="_blank" rel="noreferrer" className="underline hover:text-foreground">Arman</a>.</span>
+        </div>
+      </div>
+    </footer>
+  );
+}
+````
+
+## File: src/components/landing/Header.tsx
+````typescript
+import { Button } from "@/components/ui/button";
+import { Github } from 'lucide-react';
+import { Link } from "react-router-dom";
+import { DiscordIcon } from "../ui/DiscordIcon";
+import { Logo } from "../ui/Logo";
+
+export function Header() {
+  return (
+    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-sm">
+      <div className="container flex h-16 items-center">
+        <Link to="/" className="mr-6 flex items-center space-x-2">
+          <Logo className="h-6 w-6" />
+          <span className="font-bold">Relaycode</span>
+        </Link>
+        <div className="flex flex-1 items-center justify-end space-x-4">
+          <nav className="flex items-center space-x-1">
+            <Button variant="ghost" size="icon" asChild>
+              <a href="https://go.noca.pro/relaycode-discord" target="_blank" rel="noreferrer" aria-label="Discord Community">
+                <DiscordIcon className="h-5 w-5" />
+              </a>
+            </Button>
+            <Button variant="ghost" size="icon" asChild>
+              <a href="https://go.noca.pro/relaycoder-cli-github" target="_blank" rel="noreferrer" aria-label="GitHub Repository">
+                <Github className="h-5 w-5" />
+              </a>
+            </Button>
+          </nav>
+        </div>
+      </div>
+    </header>
+  );
+}
+````
+
+## File: src/components/landing/Hero.tsx
+````typescript
+import { hero } from "@/content/landing";
+import { Button } from "@/components/ui/button";
+import { ArrowRight, Copy } from "lucide-react";
+import { Demo } from "./Demo";
+
+export function Hero() {
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText("bun install -g relaycode");
+  };
+
+  return (
+    <section className="relative overflow-hidden">
+      <div aria-hidden="true" className="absolute inset-0 grid grid-cols-2 -space-x-52 opacity-20">
+          <div className="blur-[106px] h-56 bg-gradient-to-br from-primary to-purple-400"></div>
+          <div className="blur-[106px] h-32 bg-gradient-to-r from-cyan-400 to-sky-300"></div>
+      </div>
+      <div className="container relative mx-auto px-4 md:px-6 py-24 md:py-32">
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="text-center lg:text-left">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter mb-6 animate-fade-in">
+              {hero.title}
+            </h1>
+            <p className="max-w-xl mx-auto lg:mx-0 text-lg md:text-xl text-muted-foreground mb-10 animate-fade-in" style={{ animationDelay: '200ms' }}>
+              {hero.subtitle}
+            </p>
+            <div className="flex flex-col items-center lg:items-start gap-4 animate-fade-in" style={{ animationDelay: '400ms' }}>
+              <div className="code-block flex w-full items-center justify-between gap-4">
+                <span className="text-muted-foreground">$</span>
+                <code className="flex-1 text-left">bun install -g relaycode</code>
+                <Button variant="ghost" size="icon" onClick={copyToClipboard}>
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+              <Button size="lg" asChild>
+                <a href="https://www.noca.pro" target="_blank" rel="noreferrer">
+                  Try Web Version <ArrowRight className="ml-2 h-5 w-5" />
+                </a>
+              </Button>
+            </div>
+            <p className="mt-4 text-sm text-muted-foreground animate-fade-in flex items-center justify-center lg:justify-start gap-2" style={{ animationDelay: '500ms' }}>
+              <img src="https://pbs.twimg.com/profile_images/1961594429338472448/OOzuAD7h_400x400.jpg" alt="Arman" className="w-6 h-6 rounded-full" />
+              <span>Built by <a href="https://go.noca.pro/x-arman" target="_blank" rel="noreferrer" className="underline hover:text-foreground">Arman</a> for solo devs.</span>
+            </p>
+          </div>
+          <div className="mt-12 lg:mt-0 animate-fade-in" style={{ animationDelay: '600ms' }}>
+            <Demo />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+````
+
 ## File: src/components/landing/Problem.tsx
 ````typescript
 import { problem } from "@/content/landing";
@@ -246,6 +512,7 @@ export function Problem() {
 ````typescript
 import { companion } from "@/content/landing";
 import { GitMerge } from "lucide-react";
+import { RepomixLogo } from "../ui/RepomixLogo";
 
 export function Roadmap() {
   return (
@@ -261,11 +528,37 @@ export function Roadmap() {
         <div className="relative w-64 h-64 flex items-center justify-center">
           <div className="absolute w-full h-full border-2 border-dashed border-border/50 rounded-full animate-spin [animation-duration:20s]"></div>
           <GitMerge className="h-24 w-24 text-primary opacity-50" />
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 p-3 bg-secondary rounded-lg shadow-lg text-sm">Repomix</div>
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 p-2 bg-secondary rounded-lg shadow-lg text-sm flex items-center gap-2">
+            <RepomixLogo className="w-5 h-5" />
+            <span>Repomix</span>
+          </div>
           <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 p-3 bg-secondary rounded-lg shadow-lg text-sm">Relaycode</div>
           <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 p-3 bg-secondary rounded-lg shadow-lg text-sm">LLM</div>
           <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 p-3 bg-secondary rounded-lg shadow-lg text-sm">Your Repo</div>
         </div>
+      </div>
+    </div>
+  );
+}
+````
+
+## File: src/components/landing/Solution.tsx
+````typescript
+import { showcase } from "@/content/landing";
+import { CheckCircle2 } from "lucide-react";
+
+export function Solution() {
+  return (
+    <div className="text-center">
+      <h2 className="text-3xl md:text-4xl font-bold tracking-tight">{showcase.title}</h2>
+      <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">{showcase.footer}</p>
+      <div className="mt-12 grid gap-8 md:grid-cols-3">
+        {showcase.workflow.map((item, i) => (
+          <div key={i} className="flex flex-col items-center p-6 bg-secondary/50 rounded-lg animate-slide-up" style={{ animationDelay: `${i * 150}ms` }}>
+            <CheckCircle2 className="h-8 w-8 mb-4 text-primary" />
+            <p className="font-medium text-center">{item}</p>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -448,6 +741,87 @@ export function AnimatedCounter({ end, duration = 2000, className }: AnimatedCou
 }
 ````
 
+## File: src/components/ui/AnimatedList.tsx
+````typescript
+import { cn } from "@/lib/utils";
+
+interface Line {
+  text: string;
+  muted?: boolean;
+  className?: string;
+}
+
+interface AnimatedListProps {
+  lines: Line[];
+  initialDelay?: number;
+}
+
+export function AnimatedList({ lines, initialDelay = 0 }: AnimatedListProps) {
+  return (
+    <>
+      {lines.map((line, i) => (
+        <div 
+          key={i} 
+          className={cn(line.muted ? "text-muted-foreground" : "text-foreground", "animate-slide-up", line.className)}
+          style={{ 
+            animationDelay: `${initialDelay + i * 150}ms` 
+          }}
+        >
+          {line.text}
+        </div>
+      ))}
+    </>
+  );
+}
+````
+
+## File: src/components/ui/button.tsx
+````typescript
+import * as React from "react"
+import { Slot } from "@radix-ui/react-slot"
+import { cn } from "../../lib/utils"
+
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  asChild?: boolean
+  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link"
+  size?: "default" | "sm" | "lg" | "icon"
+}
+
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant = "default", size = "default", asChild = false, ...props }, ref) => {
+    const Comp = asChild ? Slot : "button"
+    return (
+      <Comp
+        className={cn(
+          "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+          {
+            "bg-primary text-primary-foreground hover:bg-primary/90": variant === "default",
+            "bg-destructive text-destructive-foreground hover:bg-destructive/90": variant === "destructive",
+            "border border-input bg-background hover:bg-accent hover:text-accent-foreground": variant === "outline",
+            "bg-secondary text-secondary-foreground hover:bg-secondary/80": variant === "secondary",
+            "hover:bg-accent hover:text-accent-foreground": variant === "ghost",
+            "text-primary underline-offset-4 hover:underline": variant === "link",
+          },
+          {
+            "h-10 px-4 py-2": size === "default",
+            "h-9 rounded-md px-3": size === "sm",
+            "h-11 rounded-md px-8": size === "lg",
+            "h-10 w-10": size === "icon",
+          },
+          className
+        )}
+        ref={ref}
+        {...props}
+      />
+    )
+  }
+)
+Button.displayName = "Button"
+
+export { Button }
+````
+
 ## File: src/components/ui/card.tsx
 ````typescript
 import * as React from "react"
@@ -586,6 +960,53 @@ export const Logo = (props: React.ComponentProps<'svg'>) => (
 );
 ````
 
+## File: src/components/ui/NocaLogo.tsx
+````typescript
+export const NocaLogo = (props: React.ComponentProps<'svg'>) => (
+  <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+    <rect width="64" height="64" rx="12" fill="#0A0A0A"/>
+    <path d="M20 23L32 23C37.5228 23 42 27.4772 42 33L42 33" stroke="url(#paint0_linear_1_4_noca)" strokeWidth="4"/>
+    <path d="M20 41L32 41C37.5228 41 42 36.5228 42 31L42 31" stroke="url(#paint1_linear_1_4_noca)" strokeWidth="4"/>
+    <defs>
+      <linearGradient id="paint0_linear_1_4_noca" x1="20" y1="23" x2="42" y2="33" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#38BDF8"/>
+        <stop offset="1" stopColor="#22D3EE"/>
+      </linearGradient>
+      <linearGradient id="paint1_linear_1_4_noca" x1="20" y1="41" x2="42" y2="31" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#38BDF8"/>
+        <stop offset="1" stopColor="#22D3EE"/>
+      </linearGradient>
+    </defs>
+  </svg>
+);
+````
+
+## File: src/components/ui/RepomixLogo.tsx
+````typescript
+export const RepomixLogo = (props: React.ComponentProps<'svg'>) => (
+  <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+    <rect width="64" height="64" rx="12" fill="#0A0A0A"/>
+    <path d="M20 23L44 23" stroke="url(#paint0_linear_1_2_repomix)" strokeWidth="4"/>
+    <path d="M20 32L44 32" stroke="url(#paint1_linear_1_2_repomix)" strokeWidth="4"/>
+    <path d="M20 41L44 41" stroke="url(#paint2_linear_1_2_repomix)" strokeWidth="4"/>
+    <defs>
+      <linearGradient id="paint0_linear_1_2_repomix" x1="20" y1="23" x2="44" y2="23" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#38BDF8"/>
+        <stop offset="1" stopColor="#22D3EE"/>
+      </linearGradient>
+      <linearGradient id="paint1_linear_1_2_repomix" x1="20" y1="32" x2="44" y2="32" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#38BDF8"/>
+        <stop offset="1" stopColor="#22D3EE"/>
+      </linearGradient>
+      <linearGradient id="paint2_linear_1_2_repomix" x1="20" y1="41" x2="44" y2="41" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#38BDF8"/>
+        <stop offset="1" stopColor="#22D3EE"/>
+      </linearGradient>
+    </defs>
+  </svg>
+);
+````
+
 ## File: src/content/landing.ts
 ````typescript
 export const hero = {
@@ -654,6 +1075,75 @@ import { twMerge } from "tailwind-merge"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
+}
+````
+
+## File: src/pages/LandingPage.tsx
+````typescript
+import { Hero } from "@/components/landing/Hero";
+import { Problem } from "@/components/landing/Problem";
+import { Solution } from "@/components/landing/Solution";
+import { VideoDemo } from "@/components/landing/VideoDemo";
+import { Roadmap } from "@/components/landing/Roadmap";
+import { WhoFor } from "@/components/landing/WhoFor";
+import { CTA } from "@/components/landing/CTA";
+import { FAQ } from "@/components/landing/FAQ";
+import { Footer } from "@/components/landing/Footer";
+import { Header } from "@/components/landing/Header";
+
+// A wrapper for consistent spacing and centering
+const Section = ({ children }: { children: React.ReactNode }) => (
+  <section className="container mx-auto px-4 md:px-6 py-16 md:py-24 lg:py-32">
+    {children}
+  </section>
+);
+
+export function LandingPage() {
+  return (
+    <div className="flex flex-col min-h-screen bg-background text-foreground antialiased">
+      <Header />
+      <main className="flex-grow">
+        <Hero />
+
+        {/* Features & Demo */}
+        <Section><Solution /></Section>
+        <Section><VideoDemo /></Section>
+
+        {/* The Why */}
+        <div className="bg-secondary/30"><Section><Problem /></Section></div>
+
+        {/* Companion Tool & Audience */}
+        <Section><Roadmap /></Section>
+        <div className="bg-secondary/30"><Section><WhoFor /></Section></div>
+
+        {/* FAQ & Final CTA */}
+        <Section><FAQ /></Section>
+        <div className="bg-gradient-to-t from-blue-900/20 to-transparent">
+          <Section><CTA /></Section>
+        </div>
+      </main>
+      <Footer />
+    </div>
+  );
+}
+````
+
+## File: src/pages/NotFoundPage.tsx
+````typescript
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+
+export function NotFoundPage() {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen text-center p-4">
+      <h1 className="text-6xl font-bold glow-text">404</h1>
+      <p className="mt-4 text-xl text-muted-foreground">Page Not Found.</p>
+      <p className="mt-2 text-muted-foreground">Looks like you've ventured into the void.</p>
+      <Button asChild className="mt-8">
+        <Link to="/">Return to Safety</Link>
+      </Button>
+    </div>
+  );
 }
 ````
 
@@ -753,403 +1243,6 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 )
 ````
 
-## File: postcss.config.js
-````javascript
-export default {
-  plugins: {
-    tailwindcss: {},
-    autoprefixer: {},
-  },
-}
-````
-
-## File: tsconfig.json
-````json
-{
-  "compilerOptions": {
-    "target": "ES2020",
-    "useDefineForClassFields": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
-    "module": "ESNext",
-    "skipLibCheck": true,
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true,
-    "jsx": "react-jsx",
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true,
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["./src/*"]
-    }
-  },
-  "include": ["src"],
-  "types": ["vite/client"]
-}
-````
-
-## File: tsconfig.node.json
-````json
-{
-  "compilerOptions": {
-    "skipLibCheck": true,
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "allowSyntheticDefaultImports": true,
-    "noEmit": true
-  },
-  "include": ["vite.config.ts"]
-}
-````
-
-## File: public/sitemap.xml
-````xml
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://relay.noca.pro/</loc>
-    <lastmod>2024-07-26</lastmod>
-    <priority>1.00</priority>
-  </url>
-  <url>
-    <loc>https://relay.noca.pro/#demo</loc>
-    <lastmod>2024-07-26</lastmod>
-    <priority>0.80</priority>
-  </url>
-  <url>
-    <loc>https://relay.noca.pro/#roadmap</loc>
-    <lastmod>2024-07-26</lastmod>
-    <priority>0.80</priority>
-  </url>
-  <url>
-    <loc>https://relay.noca.pro/#cta</loc>
-    <lastmod>2024-07-26</lastmod>
-    <priority>0.80</priority>
-  </url>
-</urlset>
-````
-
-## File: scripts/generate-llm-txt.mjs
-````
-import fs from 'fs';
-import path from 'path';
-import { glob } from 'glob';
-
-async function generate() {
-  const files = await glob('src/*.content.ts');
-  console.log(`Found content files: ${files}`);
-  
-  let llmContent = `User-agent: *\nAllow: /\n\n---\n\n# The following content is provided for LLM training and indexing purposes for the website relay.noca.pro.\n\n`;
-
-  for (const file of files) {
-    const content = fs.readFileSync(file, 'utf-8');
-
-    // Remove imports and type info from the whole file first
-    let cleaned = content
-      .replace(/^import.*?;/gm, '') // Remove all import statements
-      .replace(/ as RoadmapItem\[\]/g, '') // Remove type assertions
-      .trim();
-    
-    // Process each `export const ...` block individually
-    const blocks = cleaned.split('export const ').filter(b => b.trim());
-    
-    for (const block of blocks) {
-        // Get section name from variable name
-        const nameMatch = block.match(/^(\w+)\s*=/);
-        if (!nameMatch) continue;
-        const sectionName = nameMatch[1];
-        const titleCasedName = sectionName.charAt(0).toUpperCase() + sectionName.slice(1);
-
-        llmContent += `\n\n## ${titleCasedName}\n\n`;
-
-        // Get content inside the object definition
-        const contentMatch = block.match(/\{([\s\S]*)\};?/);
-        if (!contentMatch) continue;
-
-        let blockContent = contentMatch[1];
-        
-        blockContent = blockContent
-          // 1. Remove properties not useful for pure text context (icons, colors, ids)
-          .replace(/^\s*(\w*icon\w*|color|id): .*?,?\s*$/gm, '')
-          // 2. Handle escaped quotes inside strings, e.g. "his name is \"John\"" -> "his name is John"
-          .replace(/\\"/g, '')
-          // 3. Remove trailing commas from lines
-          .replace(/,\s*$/gm, '')
-          // 4. Remove JS syntax noise (brackets, quotes, backticks)
-          .replace(/[{}[\]`'"]/g, '')
-          // 5. Capitalize keys and format as "Key: value"
-          .replace(/^\s*(\w+):/gm, (match, key) => `${key.charAt(0).toUpperCase() + key.slice(1)}:`)
-          // 6. Tidy up by removing any resulting blank lines
-          .replace(/^\s*[\r\n]/gm, '')
-          .trim();
-        
-        llmContent += blockContent;
-    }
-  }
-  
-  if (!fs.existsSync('public')) {
-    fs.mkdirSync('public');
-  }
-
-  fs.writeFileSync('public/llm.txt', llmContent.trim() + '\n', 'utf-8');
-  console.log('Successfully generated public/llm.txt');
-}
-
-generate().catch(err => {
-  console.error('Failed to generate llm.txt', err);
-  process.exit(1);
-});
-````
-
-## File: src/components/landing/Demo.tsx
-````typescript
-import { AnimatedList } from "../ui/AnimatedList";
-
-export function Demo() {
-  const lines = [
-    { text: "$ relay watch" },
-    { text: "Watching for clipboard changes...", muted: true },
-    { text: "New clipboard content detected...", muted: true },
-    { text: "✓ Valid patch detected. Processing..." },
-    { text: "🚀 Starting transaction..." },
-    { text: "✔ Created: src/components/ui/Button.tsx (+88, -0)", className: "text-green-400" },
-    { text: "✔ Edited: src/pages/LandingPage.tsx (+5, -2)", className: "text-yellow-400" },
-    { text: "✔ Deleted: src/utils/old-helper.ts", className: "text-red-400" },
-    { text: "✔ Moved: src/assets/logo.svg -> src/components/ui/Logo.tsx", className: "text-blue-400" },
-    { text: "...", muted: true },
-    { text: "✨ Checks complete. Ready for review.", className: "glow-text" },
-  ];
-  return (
-    <div className="relative code-block max-w-2xl mx-auto p-6 glow-border">
-      <div className="absolute -top-3 -left-3 w-3 h-3 bg-primary rounded-full animate-ping"></div>
-      <div className="absolute -top-3 -left-3 w-3 h-3 bg-primary rounded-full"></div>
-      <div className="font-mono text-left">
-        <AnimatedList lines={lines} initialDelay={200} />
-      </div>
-      <div className="absolute top-4 right-4 text-xs text-muted-foreground">LIVE</div>
-    </div>
-  );
-}
-````
-
-## File: src/components/landing/Footer.tsx
-````typescript
-import { finalCta } from "@/content/landing";
-import { Github } from "lucide-react";
-import { Button } from "../ui/button";
-import { DiscordIcon } from "../ui/DiscordIcon";
-
-export function Footer() {
-  return (
-    <footer className="border-t border-border/40 bg-secondary/20">
-      <div className="container py-12 text-center">
-        <h2 className="text-3xl font-bold tracking-tight glow-text mb-6">
-          {finalCta.title}
-        </h2>
-        <div className="flex justify-center gap-2 mb-8">
-          <Button variant="ghost" size="icon" asChild>
-            <a href="https://go.noca.pro/relaycode-discord" target="_blank" rel="noreferrer" aria-label="Discord Community">
-              <DiscordIcon className="h-5 w-5" />
-            </a>
-          </Button>
-          <Button variant="ghost" size="icon" asChild>
-            <a href="https://go.noca.pro/relaycoder-cli-github" target="_blank" rel="noreferrer" aria-label="GitHub Repository">
-              <Github className="h-5 w-5" />
-            </a>
-          </Button>
-        </div>
-        <p className="text-sm text-muted-foreground">
-          © {new Date().getFullYear()} Relaycode. Built by Arman.
-        </p>
-      </div>
-    </footer>
-  );
-}
-````
-
-## File: src/components/landing/Hero.tsx
-````typescript
-import { hero } from "@/content/landing";
-import { Button } from "@/components/ui/button";
-import { ArrowRight, Copy } from "lucide-react";
-import { Demo } from "./Demo";
-
-export function Hero() {
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText("bun install -g relaycode");
-  };
-
-  return (
-    <section className="relative overflow-hidden">
-      <div aria-hidden="true" className="absolute inset-0 grid grid-cols-2 -space-x-52 opacity-20">
-          <div className="blur-[106px] h-56 bg-gradient-to-br from-primary to-purple-400"></div>
-          <div className="blur-[106px] h-32 bg-gradient-to-r from-cyan-400 to-sky-300"></div>
-      </div>
-      <div className="container relative mx-auto px-4 md:px-6 py-24 md:py-32">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          <div className="text-center lg:text-left">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter mb-6 animate-fade-in">
-              {hero.title}
-            </h1>
-            <p className="max-w-xl mx-auto lg:mx-0 text-lg md:text-xl text-muted-foreground mb-10 animate-fade-in" style={{ animationDelay: '200ms' }}>
-              {hero.subtitle}
-            </p>
-            <div className="flex flex-col items-center lg:items-start gap-4 animate-fade-in" style={{ animationDelay: '400ms' }}>
-              <div className="code-block flex w-full items-center justify-between gap-4">
-                <span className="text-muted-foreground">$</span>
-                <code className="flex-1 text-left">bun install -g relaycode</code>
-                <Button variant="ghost" size="icon" onClick={copyToClipboard}>
-                  <Copy className="h-4 w-4" />
-                </Button>
-              </div>
-              <Button size="lg" asChild>
-                <a href="https://www.noca.pro" target="_blank" rel="noreferrer">
-                  Try Web Version <ArrowRight className="ml-2 h-5 w-5" />
-                </a>
-              </Button>
-            </div>
-            <p className="mt-4 text-sm text-muted-foreground animate-fade-in flex items-center justify-center lg:justify-start gap-2" style={{ animationDelay: '500ms' }}>
-              <img src="https://pbs.twimg.com/profile_images/1961594429338472448/OOzuAD7h_400x400.jpg" alt="Arman" className="w-6 h-6 rounded-full" />
-              <span>Built by <a href="https://go.noca.pro/x-arman" target="_blank" rel="noreferrer" className="underline hover:text-foreground">Arman</a> for solo devs.</span>
-            </p>
-          </div>
-          <div className="mt-12 lg:mt-0 animate-fade-in" style={{ animationDelay: '600ms' }}>
-            <Demo />
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-````
-
-## File: src/components/landing/Solution.tsx
-````typescript
-import { showcase } from "@/content/landing";
-import { CheckCircle2 } from "lucide-react";
-
-export function Solution() {
-  return (
-    <div className="text-center">
-      <h2 className="text-3xl md:text-4xl font-bold tracking-tight">{showcase.title}</h2>
-      <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">{showcase.footer}</p>
-      <div className="mt-12 grid gap-8 md:grid-cols-3">
-        {showcase.workflow.map((item, i) => (
-          <div key={i} className="flex flex-col items-center p-6 bg-secondary/50 rounded-lg animate-slide-up" style={{ animationDelay: `${i * 150}ms` }}>
-            <CheckCircle2 className="h-8 w-8 mb-4 text-primary" />
-            <p className="font-medium text-center">{item}</p>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-````
-
-## File: src/components/ui/AnimatedList.tsx
-````typescript
-import { cn } from "@/lib/utils";
-
-interface Line {
-  text: string;
-  muted?: boolean;
-  className?: string;
-}
-
-interface AnimatedListProps {
-  lines: Line[];
-  initialDelay?: number;
-}
-
-export function AnimatedList({ lines, initialDelay = 0 }: AnimatedListProps) {
-  return (
-    <>
-      {lines.map((line, i) => (
-        <div 
-          key={i} 
-          className={cn(line.muted ? "text-muted-foreground" : "text-foreground", "animate-slide-up", line.className)}
-          style={{ 
-            animationDelay: `${initialDelay + i * 150}ms` 
-          }}
-        >
-          {line.text}
-        </div>
-      ))}
-    </>
-  );
-}
-````
-
-## File: src/components/ui/button.tsx
-````typescript
-import * as React from "react"
-import { Slot } from "@radix-ui/react-slot"
-import { cn } from "../../lib/utils"
-
-export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  asChild?: boolean
-  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link"
-  size?: "default" | "sm" | "lg" | "icon"
-}
-
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = "default", size = "default", asChild = false, ...props }, ref) => {
-    const Comp = asChild ? Slot : "button"
-    return (
-      <Comp
-        className={cn(
-          "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
-          {
-            "bg-primary text-primary-foreground hover:bg-primary/90": variant === "default",
-            "bg-destructive text-destructive-foreground hover:bg-destructive/90": variant === "destructive",
-            "border border-input bg-background hover:bg-accent hover:text-accent-foreground": variant === "outline",
-            "bg-secondary text-secondary-foreground hover:bg-secondary/80": variant === "secondary",
-            "hover:bg-accent hover:text-accent-foreground": variant === "ghost",
-            "text-primary underline-offset-4 hover:underline": variant === "link",
-          },
-          {
-            "h-10 px-4 py-2": size === "default",
-            "h-9 rounded-md px-3": size === "sm",
-            "h-11 rounded-md px-8": size === "lg",
-            "h-10 w-10": size === "icon",
-          },
-          className
-        )}
-        ref={ref}
-        {...props}
-      />
-    )
-  }
-)
-Button.displayName = "Button"
-
-export { Button }
-````
-
-## File: src/pages/NotFoundPage.tsx
-````typescript
-import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-
-export function NotFoundPage() {
-  return (
-    <div className="flex flex-col items-center justify-center min-h-screen text-center p-4">
-      <h1 className="text-6xl font-bold glow-text">404</h1>
-      <p className="mt-4 text-xl text-muted-foreground">Page Not Found.</p>
-      <p className="mt-2 text-muted-foreground">Looks like you've ventured into the void.</p>
-      <Button asChild className="mt-8">
-        <Link to="/">Return to Safety</Link>
-      </Button>
-    </div>
-  );
-}
-````
-
 ## File: index.html
 ````html
 <!doctype html>
@@ -1203,6 +1296,16 @@ export function NotFoundPage() {
     "typescript": "^5.0.2",
     "vite": "^4.4.5"
   }
+}
+````
+
+## File: postcss.config.js
+````javascript
+export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
 }
 ````
 
@@ -1295,6 +1398,49 @@ export default {
 }
 ````
 
+## File: tsconfig.json
+````json
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["src"],
+  "types": ["vite/client"]
+}
+````
+
+## File: tsconfig.node.json
+````json
+{
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowSyntheticDefaultImports": true,
+    "noEmit": true
+  },
+  "include": ["vite.config.ts"]
+}
+````
+
 ## File: vite.config.ts
 ````typescript
 import { defineConfig } from 'vite'
@@ -1384,90 +1530,4 @@ export default defineConfig({
     exclude: ['firebase/analytics'] // Analytics can be loaded on demand
   }
 })
-````
-
-## File: src/components/landing/Header.tsx
-````typescript
-import { Button } from "@/components/ui/button";
-import { Github } from 'lucide-react';
-import { Link } from "react-router-dom";
-import { DiscordIcon } from "../ui/DiscordIcon";
-import { Logo } from "../ui/Logo";
-
-export function Header() {
-  return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-sm">
-      <div className="container flex h-16 items-center">
-        <Link to="/" className="mr-6 flex items-center space-x-2">
-          <Logo className="h-6 w-6" />
-          <span className="font-bold">Relaycode</span>
-        </Link>
-        <div className="flex flex-1 items-center justify-end space-x-4">
-          <nav className="flex items-center space-x-1">
-            <Button variant="ghost" size="icon" asChild>
-              <a href="https://go.noca.pro/relaycode-discord" target="_blank" rel="noreferrer" aria-label="Discord Community">
-                <DiscordIcon className="h-5 w-5" />
-              </a>
-            </Button>
-            <Button variant="ghost" size="icon" asChild>
-              <a href="https://go.noca.pro/relaycoder-cli-github" target="_blank" rel="noreferrer" aria-label="GitHub Repository">
-                <Github className="h-5 w-5" />
-              </a>
-            </Button>
-          </nav>
-        </div>
-      </div>
-    </header>
-  );
-}
-````
-
-## File: src/pages/LandingPage.tsx
-````typescript
-import { Hero } from "@/components/landing/Hero";
-import { Problem } from "@/components/landing/Problem";
-import { Solution } from "@/components/landing/Solution";
-import { VideoDemo } from "@/components/landing/VideoDemo";
-import { Roadmap } from "@/components/landing/Roadmap";
-import { WhoFor } from "@/components/landing/WhoFor";
-import { CTA } from "@/components/landing/CTA";
-import { FAQ } from "@/components/landing/FAQ";
-import { Footer } from "@/components/landing/Footer";
-import { Header } from "@/components/landing/Header";
-
-// A wrapper for consistent spacing and centering
-const Section = ({ children }: { children: React.ReactNode }) => (
-  <section className="container mx-auto px-4 md:px-6 py-16 md:py-24 lg:py-32">
-    {children}
-  </section>
-);
-
-export function LandingPage() {
-  return (
-    <div className="flex flex-col min-h-screen bg-background text-foreground antialiased">
-      <Header />
-      <main className="flex-grow">
-        <Hero />
-
-        {/* Features & Demo */}
-        <Section><Solution /></Section>
-        <Section><VideoDemo /></Section>
-
-        {/* The Why */}
-        <div className="bg-secondary/30"><Section><Problem /></Section></div>
-
-        {/* Companion Tool & Audience */}
-        <Section><Roadmap /></Section>
-        <div className="bg-secondary/30"><Section><WhoFor /></Section></div>
-
-        {/* FAQ & Final CTA */}
-        <Section><FAQ /></Section>
-        <div className="bg-gradient-to-t from-blue-900/20 to-transparent">
-          <Section><CTA /></Section>
-        </div>
-      </main>
-      <Footer />
-    </div>
-  );
-}
 ````

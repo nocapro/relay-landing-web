@@ -5,7 +5,7 @@ export function VideoDemo() {
       <div className="relative aspect-video max-w-4xl mx-auto rounded-lg overflow-hidden glow-border">
         <iframe
           className="absolute top-0 left-0 w-full h-full"
-          src="https://www.youtube.com/embed/dQw4w9WgXcQ?si=OFYldzB9zt2fhG-d&autoplay=1&mute=1&loop=1&playlist=dQw4w9WgXcQ&controls=0&showinfo=0&rel=0"
+          src="https://www.youtube.com/embed/Io9HT3D5wgU?rel=0"
           title="Relaycode Demo Video"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           allowFullScreen
